@@ -21,6 +21,7 @@ function createArgandDiagram(container) {
   const input = document.createElement("input");
   input.type = "text";
   input.placeholder = "...";
+  input.value = "Im(Z) >= 3";
   input.required = true;
 
   const zoomControls = document.createElement("div");
@@ -127,7 +128,6 @@ for (const diagram of argandDiagrams) {
         // Display All the points that user selected
         for (const points of allSVGPointTexts) {
           svg.appendChild(points);
-          console.log(points.textContent);
         }
       }
     });
@@ -156,7 +156,7 @@ for (const diagram of argandDiagrams) {
     svg.appendChild(yAxis);
 
     // Draw tick markings:
-    let fontSize = 15,
+    let fontSize = 14,
       varValue = 1;
     for (let x = centerX % scale; x <= width; x += scale) {
       let PosReal = document.createElementNS(
@@ -293,7 +293,6 @@ for (const diagram of argandDiagrams) {
   // Plot a complex number
   function plotComplexNumber(equation, svg, centerX, centerY, scale) {
     // Parse the complex number
-    console.log();
     let real = 0,
       imaginary = 0,
       other = "",
@@ -313,17 +312,19 @@ for (const diagram of argandDiagrams) {
     } catch (error) {
       try {
         // Match Im(z) = b, Re(z) = a format
+        // IM(z) > = 3
         regexPattern =
-          /^\s*(im|re)\s*\(\s*[a-zA-Z]+\s*\)\s*=\s*\+?\s*\(?(-?\d*\.?\d+)\)?\s*/i;
+          /^\s*(im|re)\s*\(\s*[a-zA-Z]+\s*\)\s*(>?|<?)\s*=\s*\+?\s*\(?(-?\d*\.?\d+)\)?\s*/i;
         match = equation.match(regexPattern);
         other = match[1].toUpperCase();
         if (other == "RE") {
-          real = parseFloat(match[2]);
+          real = parseFloat(match[3]);
         } else if (other == "IM") {
-          imaginary = parseFloat(match[2]);
+          imaginary = parseFloat(match[3]);
         } else {
           throw new Error();
         }
+        other = `${other}${match[2]}`;
       } catch (error) {
         // Match |Z + a + ib| = x format
         real = 0;
@@ -366,7 +367,6 @@ for (const diagram of argandDiagrams) {
           other = `CIRCLE${value}`;
           real = -1 * real;
           imaginary = -1 * imaginary;
-          console.log(real, imaginary, other);
         } catch (error) {
           console.log(
             "Not another format but Invalid Entry (empty or gibrish)",
@@ -375,7 +375,6 @@ for (const diagram of argandDiagrams) {
         }
       }
     }
-    console.log(real, imaginary, other);
 
     // Convert to canvas coordinates
     const canvasX = centerX + real * scale;
@@ -394,44 +393,93 @@ for (const diagram of argandDiagrams) {
 
     // Draw the line for real and imaginary points
     if (other) {
-      if (other == "RE") {
-        const line = createLine(
-          centerX + (canvasX - centerX),
-          0,
-          canvasX,
-          height,
-          "green",
-          1,
-        );
-        svg.appendChild(line);
-      } else if (other == "IM") {
-        const line = createLine(
-          0,
-          centerY - (centerY - canvasY),
-          width,
-          canvasY,
-          "red",
-          1,
-        );
-        svg.appendChild(line);
-      } else if (other.includes("CIRCLE")) {
-        console.log("CIRCLE RADIUS:", other.replace(/[a-zA-Z ]/g, ""));
-        console.log(`(h,k) = (${real}, ${imaginary})`);
+      try {
+        if (other.includes("RE")) {
+          // other = `${other}${match[2]}`
+          const sign = other[other.length - 1];
+          const line = createLine(
+            centerX + (canvasX - centerX),
+            0,
+            canvasX,
+            height - 5,
+            "green",
+            1,
+          );
+          svg.appendChild(line);
+          const rect = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "rect",
+          );
+          rect.setAttribute("fill", "green"); // Fill color
+          rect.setAttribute("fill-opacity", "0.3"); // 30% transparency for the fill
 
-        // Draw Circle
-        const point = document.createElementNS(
-          "http://www.w3.org/2000/svg",
-          "circle",
-        );
-        // |Z - 5 + 5i| = 3
-        let radius = parseFloat(other.replace(/[a-zA-Z ]/g, ""));
-        point.setAttribute("cx", centerX + real * scale);
-        point.setAttribute("cy", centerY - imaginary * scale);
-        point.setAttribute("r", radius * scale);
-        point.setAttribute("fill", "none");
-        point.setAttribute("stroke", "magenta");
-        point.setAttribute("stroke-width", "2");
-        svg.appendChild(point);
+          // Re(Z) >= 3
+          if (sign == ">") {
+            rect.setAttribute("x", centerX + (canvasX - centerX));
+            rect.setAttribute("y", 0);
+            rect.setAttribute("width", width);
+            rect.setAttribute("height", height);
+
+            svg.appendChild(rect);
+          } else if (sign == "<") {
+            rect.setAttribute("x", 0);
+            rect.setAttribute("y", 0);
+            rect.setAttribute("width", centerX + (canvasX - centerX));
+            rect.setAttribute("height", width);
+
+            svg.appendChild(rect);
+          }
+        } else if (other.includes("IM")) {
+          const sign = other[other.length - 1];
+          const line = createLine(
+            0,
+            centerY - (centerY - canvasY),
+            width,
+            canvasY,
+            "red",
+            1,
+          );
+          svg.appendChild(line);
+          const rect = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "rect",
+          );
+          rect.setAttribute("fill", "red"); // Fill color
+          rect.setAttribute("fill-opacity", "0.3"); // 50% transparency for the fill
+
+          // Im(Z) >= 3
+          if (sign == ">") {
+            rect.setAttribute("x", 0);
+            rect.setAttribute("y", centerY - (centerY - canvasY));
+            rect.setAttribute("width", width);
+            rect.setAttribute("height", height);
+
+            svg.appendChild(rect);
+          } else if (sign == "<") {
+            rect.setAttribute("x", 0);
+            rect.setAttribute("y", 0);
+            rect.setAttribute("width", width);
+            rect.setAttribute("height", centerY - (centerY - canvasY));
+
+            svg.appendChild(rect);
+          }
+        } else if (other.includes("CIRCLE")) {
+          // Draw Circle
+          const point = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "circle",
+          );
+          let radius = parseFloat(other.replace(/[a-zA-Z ]/g, ""));
+          point.setAttribute("cx", centerX + real * scale);
+          point.setAttribute("cy", centerY - imaginary * scale);
+          point.setAttribute("r", radius * scale);
+          point.setAttribute("fill", "none");
+          point.setAttribute("stroke", "magenta");
+          point.setAttribute("stroke-width", "2");
+          svg.appendChild(point);
+        }
+      } catch (error) {
+        return;
       }
     }
     pointsOnThePlot(svg, canvasX, canvasY, real, imaginary, other); // Draw the point's location on the plane
