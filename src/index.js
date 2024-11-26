@@ -413,14 +413,14 @@ for (const diagram of argandDiagrams) {
           rect.setAttribute("fill-opacity", "0.3"); // 30% transparency for the fill
 
           // Re(Z) >= 3
-          if (sign == ">") {
+          if (sign == "<") {
             rect.setAttribute("x", centerX + (canvasX - centerX));
             rect.setAttribute("y", 0);
             rect.setAttribute("width", width);
             rect.setAttribute("height", height);
 
             svg.appendChild(rect);
-          } else if (sign == "<") {
+          } else if (sign == ">") {
             rect.setAttribute("x", 0);
             rect.setAttribute("y", 0);
             rect.setAttribute("width", centerX + (canvasX - centerX));
@@ -447,14 +447,14 @@ for (const diagram of argandDiagrams) {
           rect.setAttribute("fill-opacity", "0.3"); // 50% transparency for the fill
 
           // Im(Z) >= 3
-          if (sign == ">") {
+          if (sign == "<") {
             rect.setAttribute("x", 0);
             rect.setAttribute("y", centerY - (centerY - canvasY));
             rect.setAttribute("width", width);
             rect.setAttribute("height", height);
 
             svg.appendChild(rect);
-          } else if (sign == "<") {
+          } else if (sign == ">") {
             rect.setAttribute("x", 0);
             rect.setAttribute("y", 0);
             rect.setAttribute("width", width);
