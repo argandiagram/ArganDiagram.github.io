@@ -21,7 +21,6 @@ function createArgandDiagram(container) {
   const input = document.createElement("input");
   input.type = "text";
   input.placeholder = "...";
-  input.value = "Im(Z) >= 3";
   input.required = true;
 
   const zoomControls = document.createElement("div");
@@ -94,7 +93,7 @@ for (const diagram of argandDiagrams) {
       if (event.key === "Enter") {
         const newInputField = document.createElement("input");
         newInputField.type = "text";
-        newInputField.placeholder = "(a, b)";
+        newInputField.placeholder = "...";
         newInputField.classList.add("equations");
 
         // Add the same event listener to the new input field
