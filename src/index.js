@@ -394,17 +394,6 @@ for (const diagram of argandDiagrams) {
     const canvasX = centerX + real * scale;
     const canvasY = centerY - imaginary * scale;
 
-    // Draw the point
-    const point = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "circle",
-    );
-    point.setAttribute("cx", canvasX);
-    point.setAttribute("cy", canvasY);
-    point.setAttribute("r", 3);
-    point.setAttribute("fill", "blue");
-    svg.appendChild(point);
-
     // Draw the line for real and imaginary points
     if (other) {
       try {
@@ -550,8 +539,20 @@ for (const diagram of argandDiagrams) {
     pointsOnThePlot(svg, canvasX, canvasY, real, imaginary, other); // Draw the point's location on the plane
   }
 
-  const allSVGPointTexts = new Set();
   function pointsOnThePlot(svg, X, Y, displayX, displayY, other = "") {
+    if (other) if (!other.includes("CIRCLE")) return;
+
+    // Draw the point
+    const point = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "circle",
+    );
+    point.setAttribute("cx", X);
+    point.setAttribute("cy", Y);
+    point.setAttribute("fill", "blue");
+    point.setAttribute("r", 3);
+    svg.appendChild(point);
+
     // Create an SVG <text> element
     const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
     text.setAttribute("x", X);
@@ -579,8 +580,6 @@ for (const diagram of argandDiagrams) {
       }
     }
     text.style.display = "none";
-
-    svg.appendChild(text);
 
     const hoverPoints = function (event) {
       const rect = svg.getBoundingClientRect(); // Get the SVG's position
@@ -625,6 +624,7 @@ for (const diagram of argandDiagrams) {
         }
       }
     });
+    svg.appendChild(text);
   }
 
   // Initial setup
