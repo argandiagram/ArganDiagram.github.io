@@ -424,7 +424,7 @@ for (const diagram of argandDiagrams) {
             rect.setAttribute("x", 0);
             rect.setAttribute("y", 0);
             rect.setAttribute("width", centerX + (canvasX - centerX));
-            rect.setAttribute("height", width);
+            rect.setAttribute("height", height);
 
             svg.appendChild(rect);
           }
