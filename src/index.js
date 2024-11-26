@@ -278,7 +278,7 @@ for (const diagram of argandDiagrams) {
     svg.appendChild(NegImag);
   }
 
-  function createLine(x1, y1, x2, y2, color, strokeWidth) {
+  function createLine(x1, y1, x2, y2, color, strokeWidth, other = "") {
     const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
     line.setAttribute("x1", x1);
     line.setAttribute("y1", y1);
@@ -286,6 +286,9 @@ for (const diagram of argandDiagrams) {
     line.setAttribute("y2", y2);
     line.setAttribute("stroke", color);
     line.setAttribute("stroke-width", strokeWidth);
+    if (other) {
+      line.setAttribute("stroke-dasharray", "5, 5"); // Dotted effect
+    }
     return line;
   }
 
@@ -313,7 +316,7 @@ for (const diagram of argandDiagrams) {
         // Match Im(z) = b, Re(z) = a format
         // IM(z) > = 3
         regexPattern =
-          /^\s*(im|re)\s*\(\s*[a-zA-Z]+\s*\)\s*(>?|<?)\s*=\s*\+?\s*\(?(-?\d*\.?\d+)\)?\s*/i;
+          /^\s*(im|re)\s*\(\s*[a-zA-Z]+\s*\)\s*(\>=|\<=|>|<|=)\s*\+?\s*\(?(-?\d*\.?\d+)\)?\s*/i;
         match = equation.match(regexPattern);
         other = match[1].toUpperCase();
         if (other == "RE") {
@@ -331,13 +334,25 @@ for (const diagram of argandDiagrams) {
         other = "";
         try {
           // Check if the equation matches the expected format
-          const formatRegex = /^\|[^\|]+\| = [+-]?\d*\.?\d+$/;
+          const formatRegex = /^\|[^\|]+\|\s*[>=<]=?|=\s*[+-]?\d*\.?\d+$/;
           if (!formatRegex.test(equation.trim())) {
             throw new Error("Invalid format");
           }
 
-          // Split by '='
-          let [lhs, rhs] = equation.split("=");
+          // Split
+          const operatorRegex = /([>=<]=?|=)/; // Matches >, >=, <, <=, =
+          let parts = equation.split(operatorRegex).map((part) => part.trim());
+
+          console.log(parts);
+          // Check if the split resulted in the expected number of parts
+          if (parts.length < 3) {
+            throw new Error("Invalid format");
+          }
+
+          let lhs = parts[0];
+          const operator = parts[1];
+          let rhs = parts[2];
+
           lhs = lhs.replace(/\|/g, "").trim(); // Remove '|' and trim
           let value = parseFloat(rhs.trim());
 
@@ -363,7 +378,7 @@ for (const diagram of argandDiagrams) {
             }
           });
 
-          other = `CIRCLE${value}`;
+          other = `CIRCLE,${value},${operator}`;
           real = -1 * real;
           imaginary = -1 * imaginary;
         } catch (error) {
@@ -394,17 +409,31 @@ for (const diagram of argandDiagrams) {
     if (other) {
       try {
         if (other.includes("RE")) {
-          // other = `${other}${match[2]}`
-          const sign = other[other.length - 1];
-          const line = createLine(
-            centerX + (canvasX - centerX),
-            0,
-            canvasX,
-            height - 5,
-            "green",
-            1,
-          );
-          svg.appendChild(line);
+          const sign = other.replace("RE", "");
+
+          if (!other.includes("=")) {
+            const line = createLine(
+              centerX + (canvasX - centerX),
+              0,
+              canvasX,
+              height - 5,
+              "blue",
+              2,
+              "dotted",
+            );
+            svg.appendChild(line);
+          } else {
+            line = createLine(
+              centerX + (canvasX - centerX),
+              0,
+              canvasX,
+              height - 5,
+              "blue",
+              2,
+            );
+            svg.appendChild(line);
+          }
+
           const rect = document.createElementNS(
             "http://www.w3.org/2000/svg",
             "rect",
@@ -412,15 +441,14 @@ for (const diagram of argandDiagrams) {
           rect.setAttribute("fill", "green"); // Fill color
           rect.setAttribute("fill-opacity", "0.3"); // 30% transparency for the fill
 
-          // Re(Z) >= 3
-          if (sign == ">") {
+          if (sign.includes(">")) {
             rect.setAttribute("x", centerX + (canvasX - centerX));
             rect.setAttribute("y", 0);
             rect.setAttribute("width", width);
             rect.setAttribute("height", height);
 
             svg.appendChild(rect);
-          } else if (sign == "<") {
+          } else if (sign.includes("<")) {
             rect.setAttribute("x", 0);
             rect.setAttribute("y", 0);
             rect.setAttribute("width", centerX + (canvasX - centerX));
@@ -429,16 +457,31 @@ for (const diagram of argandDiagrams) {
             svg.appendChild(rect);
           }
         } else if (other.includes("IM")) {
-          const sign = other[other.length - 1];
-          const line = createLine(
-            0,
-            centerY - (centerY - canvasY),
-            width,
-            canvasY,
-            "red",
-            1,
-          );
-          svg.appendChild(line);
+          const sign = other.replace("IM", "");
+
+          if (sign.includes("=")) {
+            const line = createLine(
+              0,
+              centerY - (centerY - canvasY),
+              width,
+              canvasY,
+              "blue",
+              2,
+            );
+            svg.appendChild(line);
+          } else {
+            const line = createLine(
+              0,
+              centerY - (centerY - canvasY),
+              width,
+              canvasY,
+              "blue",
+              2,
+              "dotted",
+            );
+            svg.appendChild(line);
+          }
+
           const rect = document.createElementNS(
             "http://www.w3.org/2000/svg",
             "rect",
@@ -447,14 +490,14 @@ for (const diagram of argandDiagrams) {
           rect.setAttribute("fill-opacity", "0.3"); // 50% transparency for the fill
 
           // Im(Z) >= 3
-          if (sign == "<") {
+          if (sign.includes("<")) {
             rect.setAttribute("x", 0);
             rect.setAttribute("y", centerY - (centerY - canvasY));
             rect.setAttribute("width", width);
             rect.setAttribute("height", height);
 
             svg.appendChild(rect);
-          } else if (sign == ">") {
+          } else if (sign.includes(">")) {
             rect.setAttribute("x", 0);
             rect.setAttribute("y", 0);
             rect.setAttribute("width", width);
@@ -468,13 +511,36 @@ for (const diagram of argandDiagrams) {
             "http://www.w3.org/2000/svg",
             "circle",
           );
-          let radius = parseFloat(other.replace(/[a-zA-Z ]/g, ""));
+          let parts = other.split(",").map((part) => part.trim());
+          let radius = parseFloat(parts[1]);
+          let operator = parts[2];
           point.setAttribute("cx", centerX + real * scale);
           point.setAttribute("cy", centerY - imaginary * scale);
           point.setAttribute("r", radius * scale);
-          point.setAttribute("fill", "none");
-          point.setAttribute("stroke", "magenta");
+          point.setAttribute("stroke", "blue");
+          if (!operator.includes("=")) {
+            point.setAttribute("stroke-dasharray", "5, 5"); // Dotted effect
+          }
           point.setAttribute("stroke-width", "2");
+
+          point.setAttribute("fill", "none");
+          if (operator.includes("<")) {
+            point.setAttribute("fill", "rgba(0, 0, 255, 0.3)");
+          } else if (operator.includes(">")) {
+            const rect = document.createElementNS(
+              "http://www.w3.org/2000/svg",
+              "rect",
+            );
+            rect.setAttribute("fill", "blue");
+            rect.setAttribute("fill-opacity", "0.3");
+            rect.setAttribute("x", 0);
+            rect.setAttribute("y", 0);
+            rect.setAttribute("width", width);
+            rect.setAttribute("height", height);
+            point.setAttribute("fill", "rgba(255, 255, 0, 0.3)");
+
+            svg.appendChild(rect);
+          }
           svg.appendChild(point);
         }
       } catch (error) {

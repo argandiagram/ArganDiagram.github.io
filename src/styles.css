@@ -49,6 +49,10 @@
     width: 30px;
     border-radius: 8px;
 }
+.ArgandDiagram > svg > .seeThrough {
+}
+.ArgandDiagram > svg > .non-transparent {
+}
 
 .ArgandDiagram > #zoom-controls > *:hover {
     padding: 0.3rem;
