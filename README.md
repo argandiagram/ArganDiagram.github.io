@@ -9,7 +9,6 @@ Organization:
   │   ├── index.js          // Main code of JS
   │   └── styles.css        // stylesheet
   │
-  ├── test/
-  │     └── index.html      // test file
+  ├── index.html      // test file
   └──────────────────────────────
 ```
