@@ -587,7 +587,7 @@ for (const diagram of argandDiagrams) {
         text.textContent = `(0, 0)`;
       }
     }
-    text.style.display = "none";
+    text.style.display = "none"; // Hide the text
 
     const hoverPoints = function (event) {
       const rect = svg.getBoundingClientRect(); // Get the SVG's position
@@ -608,36 +608,30 @@ for (const diagram of argandDiagrams) {
       return false;
     };
 
+    let isHoverEnabled = true;
     const mouseMoveHandler = function (event) {
-      if (hoverPoints(event)) {
+      if (isHoverEnabled && hoverPoints(event)) {
         text.style.display = "block"; // Show the text
       } else {
         text.style.display = "none"; // Hide the text
       }
     };
 
-    svg.addEventListener("mousemove", mouseMoveHandler);
-    svg.addEventListener("click", function (event) {
+    const clickHandler = function (event) {
       if (hoverPoints(event)) {
-        svg.removeEventListener("mousemove", mouseMoveHandler);
-
-        const existingText = Array.from(allSVGPointTexts).find(
-          (svgText) => svgText.textContent === text.textContent,
-        );
-        if (existingText) {
-          allSVGPointTexts.delete(existingText);
+        isHoverEnabled = !isHoverEnabled;
+        if (isHoverEnabled) {
           svg.addEventListener("mousemove", mouseMoveHandler);
         } else {
-          allSVGPointTexts.add(text);
+          svg.removeEventListener("mousemove", mouseMoveHandler);
+          text.style.display = "block";
         }
       }
-    });
-    svg.appendChild(text);
+    };
 
-    // Display All the points that user selected
-    for (const texts of allSVGPointTexts) {
-      svg.appendChild(texts);
-    }
+    svg.addEventListener("mousemove", mouseMoveHandler);
+    svg.addEventListener("click", clickHandler);
+    svg.appendChild(text);
   }
 
   // Initial setup
