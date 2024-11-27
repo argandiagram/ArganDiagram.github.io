@@ -602,7 +602,7 @@ for (const diagram of argandDiagrams) {
       ) {
         // Center the text above the mouse cursor
         text.setAttribute("x", mouseX - text.getBBox().width / 2); // Center horizontally
-        text.setAttribute("y", mouseY - 8); // 10px above mouse
+        text.setAttribute("y", mouseY - 5); // 10px above mouse
         return true;
       }
       return false;
