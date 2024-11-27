@@ -43,17 +43,22 @@ h2 {
     margin-left: 3rem;
     margin-top: 1rem;
     padding: 0.2rem;
+    border-radius: 8px;
 
-    background-color: whitesmoke; /* Soft slate gray */
-    border-radius: 3px;
+    background-color: white;
+    border: 2px solid white;
+    color: #2d3748;
 }
 
 .ArgandDiagram > div#hideInputs:hover {
     z-index: 1;
+    background-color: #0000af;
+    color: white;
+    border-color: black;
     font-size: 2.1rem;
     transition:
-        border-color 0.1s,
-        box-shadow 0.1s;
+        background-color 0.1s,
+        border-color 0.15s;
 }
 
 .ArgandDiagram > #zoom-controls > * {
@@ -108,15 +113,15 @@ h2 {
     border-radius: 8px; /* Rounded corners */
     padding: 10px; /* Add some spacing */
     outline: none; /* Remove blue outline on focus */
-    transition:
-        border-color 0.2s,
-        box-shadow 0.2s;
     box-sizing: content-box;
 }
 
 .ArgandDiagram input:focus {
     border-color: #003580; /* Darker blue border */
     box-shadow: 4px 4px rgba(0, 53, 128, 0.2); /* Subtle and lighter blue glow */
+    transition:
+        border-color 0.5s,
+        box-shadow 0.7s;
 }
 
 .no-select {

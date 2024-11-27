@@ -58,7 +58,7 @@ for (const diagram of argandDiagrams) {
 
   toggleMenu.addEventListener("click", () => {
     const equationInputsTemp = diagram.querySelectorAll(
-      "div#AllInputs input[type='text'], div#zoomIn, div#zoomOut",
+      "div#AllInputs input[type='text'], div#zoomIn, div#zoomOut, div#info",
     );
 
     equationInputsTemp.forEach((input) => {
