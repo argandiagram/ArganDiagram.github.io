@@ -36,6 +36,32 @@ function createArgandDiagram(container) {
   useCase.id = "info";
   useCase.textContent = "?";
 
+  const informationOnUse = document.createElement("div");
+  informationOnUse.id = "hints";
+  informationOnUse.innerHTML = `
+    <strong>Circles:</strong>
+    <ul>
+      <li>| Z | = 3: Circle at (0, 0), radius 3</li>
+      <li>| Z - i + 2 | = 4: Circle at (-2, 1), radius 4</li>
+      <li>| Z - i | > 3: Area outside radius 3 from (0, 0)</li>
+      <li>| Z + 2 | <= 3: Area within radius 3 from (-2, 0)</li>
+    </ul>
+    <hr />
+
+    <strong>Points:</strong>
+    <ul>
+      <li>(a, b): Point at (a, b)</li>
+    </ul>
+    <hr />
+
+    <strong>Lines:</strong>
+    <ul>
+      <li>Im( Z ) = 3: Line at 3i</li>
+      <li>Re( Z ) = 4: Line at 4</li>
+      <li>Im( Z ) >= 3: Area above and at 3i</li>
+    </ul>
+  `;
+
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.id = "svg";
 
@@ -45,6 +71,7 @@ function createArgandDiagram(container) {
   zoomControls.appendChild(zoomIn);
   zoomControls.appendChild(zoomOut);
   zoomControls.appendChild(useCase);
+  container.appendChild(informationOnUse);
   container.appendChild(hideInputs);
   container.appendChild(allInputs);
   container.appendChild(zoomControls);
@@ -56,6 +83,22 @@ for (const diagram of argandDiagrams) {
   const equationInputs = diagram.querySelectorAll("input[type='text']");
 
   const toggleMenu = diagram.querySelector("div#hideInputs");
+  const zoomIn = diagram.querySelector("div#zoomIn");
+  const zoomOut = diagram.querySelector("div#zoomOut");
+  const info = diagram.querySelector("div#info");
+  const hints = diagram.querySelector("#hints");
+
+  zoomIn.addEventListener("click", () => {
+    virtualScale += scale;
+  });
+
+  zoomOut.addEventListener("click", () => {
+    virtualScale -= scale;
+  });
+
+  info.addEventListener("click", () => {
+    hints.style.display = hints.style.display === "block" ? "none" : "block";
+  });
 
   toggleMenu.addEventListener("click", () => {
     const equationInputsTemp = diagram.querySelectorAll(
@@ -69,8 +112,10 @@ for (const diagram of argandDiagrams) {
 
   // Set SVG dimensions
   let temp = diagram.getBoundingClientRect();
-  svg.setAttribute("width", temp.width * 0.97); // Matching with css to align the center perfectly
-  svg.setAttribute("height", temp.height);
+
+  // Scaling according to css
+  svg.setAttribute("width", temp.width * 0.97);
+  svg.setAttribute("height", temp.height * 0.99);
 
   const width = svg.getAttribute("width");
   const height = svg.getAttribute("height");
