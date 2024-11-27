@@ -5,9 +5,6 @@ const argandDiagrams = document.getElementsByClassName("ArgandDiagram");
 document.querySelectorAll(".ArgandDiagram").forEach(createArgandDiagram);
 function createArgandDiagram(container) {
   // Create the elements
-  const h2 = document.createElement("h2");
-  h2.textContent = "Argand Diagram";
-
   const hideInputs = document.createElement("div");
   hideInputs.id = "hideInputs";
   hideInputs.textContent = "|||";
@@ -47,7 +44,6 @@ function createArgandDiagram(container) {
   zoomControls.appendChild(zoomIn);
   zoomControls.appendChild(zoomOut);
   zoomControls.appendChild(useCase);
-  container.appendChild(h2);
   container.appendChild(hideInputs);
   container.appendChild(allInputs);
   container.appendChild(zoomControls);
@@ -72,8 +68,8 @@ for (const diagram of argandDiagrams) {
 
   // Set SVG dimensions
   let temp = diagram.getBoundingClientRect();
-  svg.setAttribute("width", temp.width * 0.97); // Matching with css to align the center perfectly
-  svg.setAttribute("height", temp.height);
+  svg.setAttribute("width", temp.width * 0.98); // Matching with css to align the center perfectly
+  svg.setAttribute("height", temp.height * 0.97);
 
   const width = svg.getAttribute("width");
   const height = svg.getAttribute("height");

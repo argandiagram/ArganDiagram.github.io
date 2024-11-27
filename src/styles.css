@@ -1,13 +1,24 @@
-.ArgandDiagram {
-    position: fixed;
+h2 {
     text-align: center;
-    width: 95%;
-    height: 80%;
+    font-size: 22px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.ArgandDiagram {
+    position: relative;
+    text-align: center;
+    width: 100vw;
+    height: 95vh;
+    margin: 0%;
+    padding: 0%;
+    box-sizing: border-box;
 }
 .ArgandDiagram > svg {
-    width: 97%;
+    width: 98%;
+    height: 99%;
     border: 2px solid grey;
-    border-radius: 8px;
+    border-radius: 5px;
 }
 
 .ArgandDiagram > #AllInputs {
@@ -16,7 +27,7 @@
     position: absolute;
     padding: 1rem;
     overflow-y: auto;
-    width: 25%;
+    width: 30%;
     min-width: 50px;
     max-width: 150px;
 }
@@ -49,38 +60,30 @@
     width: 30px;
     border-radius: 8px;
 }
-.ArgandDiagram > svg > .seeThrough {
-}
-.ArgandDiagram > svg > .non-transparent {
-}
-
 .ArgandDiagram > #zoom-controls > *:hover {
     padding: 0.3rem;
     font-size: 1.5rem;
 }
 
 .ArgandDiagram > #zoom-controls > #zoomIn {
-    top: 6rem;
+    top: 2rem;
 }
 
 .ArgandDiagram > #zoom-controls > #zoomOut {
-    top: 9rem;
+    top: 5rem;
 }
 
 .ArgandDiagram > #zoom-controls > #info {
     color: red;
-    top: 12rem;
-    border: none;
+    top: 8rem;
+    border: 1px solid black;
     text-align: center;
 }
 
-input {
-    margin-left: auto;
-    margin-right: auto;
+.ArgandDiagram input {
     text-align: center;
-
-    width: 80%;
-    margin-top: 1rem;
+    width: 90%;
+    margin-top: 0.5rem auto;
     font-weight: bolder;
     font-size: 120%;
     border: 2px solid #ccc; /* Light gray border */
@@ -90,9 +93,10 @@ input {
     transition:
         border-color 0.2s,
         box-shadow 0.2s;
+    box-sizing: content-box;
 }
 
-input:focus {
+.ArgandDiagram input:focus {
     border-color: #003580; /* Darker blue border */
     box-shadow: 4px 4px rgba(0, 53, 128, 0.2); /* Subtle and lighter blue glow */
 }
