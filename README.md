@@ -15,3 +15,5 @@ Organization:
 
 ## License
 This project is licensed under the **Creative Commons Attribution 4.0 International (CC BY 4.0)** License. You are free to copy, modify, and distribute the work, even for commercial purposes, as long as you provide appropriate credit.
+
+> If too bored to attribute, ignore licence. You are free to do whatever with the code but I am not responsible.
