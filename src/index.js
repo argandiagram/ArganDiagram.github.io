@@ -68,8 +68,8 @@ for (const diagram of argandDiagrams) {
 
   // Set SVG dimensions
   let temp = diagram.getBoundingClientRect();
-  svg.setAttribute("width", temp.width * 0.98); // Matching with css to align the center perfectly
-  svg.setAttribute("height", temp.height * 0.97);
+  svg.setAttribute("width", temp.width * 0.97); // Matching with css to align the center perfectly
+  svg.setAttribute("height", temp.height * 0.99);
 
   const width = svg.getAttribute("width");
   const height = svg.getAttribute("height");
@@ -431,7 +431,7 @@ for (const diagram of argandDiagrams) {
             "rect",
           );
           rect.setAttribute("fill", "green"); // Fill color
-          rect.setAttribute("fill-opacity", "0.3"); // 30% transparency for the fill
+          rect.setAttribute("fill-opacity", "0.3"); // 30% transparency
 
           if (sign.includes(">")) {
             rect.setAttribute("x", centerX + (canvasX - centerX));
