@@ -566,7 +566,7 @@ for (const diagram of argandDiagrams) {
     text.setAttribute("x", X);
     text.setAttribute("y", Y);
     text.setAttribute("font-style", "italic");
-    text.setAttribute("font-size", "24");
+    text.setAttribute("font-size", "20");
     text.setAttribute("stroke", "white");
     text.setAttribute("stroke-width", "2");
     text.setAttribute("paint-order", "stroke");
@@ -574,11 +574,11 @@ for (const diagram of argandDiagrams) {
 
     if (displayX != 0) {
       if (displayY > 0) {
-        text.textContent = `${displayX} + ${displayY}i`;
+        text.textContent = `${displayX}+${displayY}i`;
       } else if (displayY == 0) {
         text.textContent = `${displayX}`;
       } else {
-        text.textContent = `${displayX} - ${Math.abs(displayY)}i`;
+        text.textContent = `${displayX}-${Math.abs(displayY)}i`;
       }
     } else {
       if (displayY != 0) {
