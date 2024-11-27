@@ -72,7 +72,7 @@ for (const diagram of argandDiagrams) {
 
   // Set SVG dimensions
   let temp = diagram.getBoundingClientRect();
-  svg.setAttribute("width", temp.width);
+  svg.setAttribute("width", temp.width * 0.97); // Matching with css to align the center perfectly
   svg.setAttribute("height", temp.height);
 
   const width = svg.getAttribute("width");
@@ -80,15 +80,27 @@ for (const diagram of argandDiagrams) {
   const centerX = Math.floor(width / 2); // Center of SVG for x-axis
   const centerY = Math.floor(height / 2); // Center of SVG for y-axis
   const scale = 35; // 1 unit = 35 pixels
+  let virtualScale = scale; // This is the scale that user see on zoom controlling: Placebo maybe?
 
   const allInputs = diagram.querySelectorAll("#inputs input");
 
   function addInputEventListener(inputField) {
     function handleKeyPress(event) {
-      // Todo: check if input in correct suitable format
-      if (this.value == "") {
-        return;
+      // Not perfect but get's the job done hopefully
+      let regexPattern = [
+        /^\|[^\|]+\|\s*[>=<]=?\s*[+-]?\d*\.?\d+$/,
+        /^\s*im|re\s*\(\s*[a-zA-Z]+\s*\)\s*\>=|\<=|>|<|=\s*\+?\s*\(?-?\d*\.?\d+\)?\s*/i,
+        /^\s*\(\s*-?\d*\.?\d+\s*,\s*-?\d*\.?\d+\s*\)\s*/,
+      ];
+      let isInValid = true;
+      for (const pattern of regexPattern) {
+        if (pattern.test(this.value)) {
+          isInValid = false;
+          break;
+        }
       }
+
+      if (isInValid) return;
 
       if (event.key === "Enter") {
         const newInputField = document.createElement("input");
@@ -123,11 +135,6 @@ for (const diagram of argandDiagrams) {
           const equation = inputFields.value.trim();
           plotComplexNumber(equation, svg, centerX, centerY, scale);
         });
-
-        // Display All the points that user selected
-        for (const points of allSVGPointTexts) {
-          svg.appendChild(points);
-        }
       }
     });
   }
@@ -335,7 +342,7 @@ for (const diagram of argandDiagrams) {
         try {
           // Check if the equation matches the expected format
           const formatRegex = /^\|[^\|]+\|\s*[>=<]=?|=\s*[+-]?\d*\.?\d+$/;
-          if (!formatRegex.test(equation.trim())) {
+          if (!formatRegex.test(equation)) {
             throw new Error("Invalid format");
           }
 
@@ -343,7 +350,6 @@ for (const diagram of argandDiagrams) {
           const operatorRegex = /([>=<]=?|=)/; // Matches >, >=, <, <=, =
           let parts = equation.split(operatorRegex).map((part) => part.trim());
 
-          console.log(parts);
           // Check if the split resulted in the expected number of parts
           if (parts.length < 3) {
             throw new Error("Invalid format");
@@ -539,6 +545,7 @@ for (const diagram of argandDiagrams) {
     pointsOnThePlot(svg, canvasX, canvasY, real, imaginary, other); // Draw the point's location on the plane
   }
 
+  const allSVGPointTexts = new Set();
   function pointsOnThePlot(svg, X, Y, displayX, displayY, other = "") {
     if (other) if (!other.includes("CIRCLE")) return;
 
@@ -625,6 +632,11 @@ for (const diagram of argandDiagrams) {
       }
     });
     svg.appendChild(text);
+
+    // Display All the points that user selected
+    for (const texts of allSVGPointTexts) {
+      svg.appendChild(texts);
+    }
   }
 
   // Initial setup
