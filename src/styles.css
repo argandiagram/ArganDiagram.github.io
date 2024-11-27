@@ -72,8 +72,8 @@ h2 {
     border-radius: 8px;
 }
 .ArgandDiagram > #zoom-controls > *:hover {
-    padding: 0.3rem;
-    font-size: 1.5rem;
+    padding: 0.25rem;
+    font-size: 1.2rem;
 }
 
 .ArgandDiagram > #zoom-controls > #zoomIn {
@@ -100,6 +100,35 @@ h2 {
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.ArgandDiagram > #hints {
+    background-color: #fff9c4;
+    border: 2px solid #283593;
+    color: #333333;
+    border-radius: 8px;
+    margin-right: 10px;
+    text-align: initial;
+
+    position: absolute;
+    padding: 1rem;
+    width: 100%;
+    max-width: 400px;
+    right: 5rem;
+    top: 8rem;
+    display: none;
+}
+
+.ArgandDiagram > #hints > ul {
+    margin: 0px;
+}
+.ArgandDiagram > #hints > ul > li {
+    margin: -5px;
+    padding: 0;
+}
+.ArgandDiagram > #hints > ul > li::marker {
+    color: #ffa726; /* Change bullet color */
+    font-size: 1.5em; /* Resize the bullet */
 }
 
 .ArgandDiagram input {
