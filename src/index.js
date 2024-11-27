@@ -264,7 +264,7 @@ for (const diagram of argandDiagrams) {
     PosReal.textContent = "+Re";
     PosReal.setAttribute(
       "x",
-      width - PosReal.textContent.length * (fontSize + fontSize / 2),
+      width - PosReal.textContent.length * fontSize + scale / 2,
     );
     svg.appendChild(PosReal);
 

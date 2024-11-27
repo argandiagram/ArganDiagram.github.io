@@ -15,6 +15,7 @@ h2 {
     box-sizing: border-box;
 }
 .ArgandDiagram > svg {
+    position: static;
     width: 97%;
     height: 99%;
     border: 2px solid grey;
@@ -25,6 +26,7 @@ h2 {
     margin-left: 4rem;
     height: 55%;
     position: absolute;
+    margin-top: 0.2rem;
     padding: 1rem;
     overflow-y: auto;
     width: 30%;
@@ -83,7 +85,8 @@ h2 {
 .ArgandDiagram input {
     text-align: center;
     width: 90%;
-    margin-top: 0.5rem auto;
+    margin: 0.2rem auto;
+
     font-weight: bolder;
     font-size: 120%;
     border: 2px solid #ccc; /* Light gray border */
