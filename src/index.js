@@ -16,6 +16,7 @@ function createArgandDiagram(container) {
   inputContainer.className = "input-container";
 
   const input = document.createElement("input");
+  input.id = "first-input";
   input.type = "text";
   input.placeholder = "...";
   input.required = true;
@@ -69,7 +70,7 @@ for (const diagram of argandDiagrams) {
   // Set SVG dimensions
   let temp = diagram.getBoundingClientRect();
   svg.setAttribute("width", temp.width * 0.97); // Matching with css to align the center perfectly
-  svg.setAttribute("height", temp.height * 0.99);
+  svg.setAttribute("height", temp.height);
 
   const width = svg.getAttribute("width");
   const height = svg.getAttribute("height");

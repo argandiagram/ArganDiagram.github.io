@@ -29,7 +29,7 @@ h2 {
     margin-top: 0.2rem;
     padding: 1rem;
     overflow-y: auto;
-    width: 30%;
+    width: 40%;
     min-width: 50px;
     max-width: 150px;
 }
@@ -114,6 +114,10 @@ h2 {
     padding: 10px; /* Add some spacing */
     outline: none; /* Remove blue outline on focus */
     box-sizing: content-box;
+}
+
+.ArgandDiagram #first-input {
+    margin-top: 2rem;
 }
 
 .ArgandDiagram input:focus {
