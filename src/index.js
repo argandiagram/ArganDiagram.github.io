@@ -88,9 +88,9 @@ for (const diagram of argandDiagrams) {
     function handleKeyPress(event) {
       // Not perfect but get's the job done hopefully
       let regexPattern = [
-        /^\|[^\|]+\|\s*[>=<]=?\s*[+-]?\d*\.?\d+$/,
-        /^\s*im|re\s*\(\s*[a-zA-Z]+\s*\)\s*\>=|\<=|>|<|=\s*\+?\s*\(?-?\d*\.?\d+\)?\s*/i,
         /^\s*\(\s*-?\d*\.?\d+\s*,\s*-?\d*\.?\d+\s*\)\s*/,
+        /^\s*im|re\s*\(\s*[A-Za-z]+\s*\)\s*\>=|\<=|>|<|=\s*\+?\s*\(?-?\d*\.?\d+\)?\s*/i,
+        /^\s*\|\s*[a-zA-Z]\s*([+-]\s*\d*\.?\d*(i)?\s*)*\|\s*=\s*[+-]?\d*\.?\d+\s*$/,
       ];
       let isInValid = true;
       for (const pattern of regexPattern) {
@@ -341,7 +341,8 @@ for (const diagram of argandDiagrams) {
         other = "";
         try {
           // Check if the equation matches the expected format
-          const formatRegex = /^\|[^\|]+\|\s*[>=<]=?|=\s*[+-]?\d*\.?\d+$/;
+          const formatRegex =
+            /^\s*\|\s*[a-zA-Z]\s*([+-]\s*\d*\.?\d*(i)?\s*)*\|\s*=\s*[+-]?\d*\.?\d+\s*$/;
           if (!formatRegex.test(equation)) {
             throw new Error("Invalid format");
           }
