@@ -1,6 +1,6 @@
-h2 {
+h3 {
     text-align: center;
-    font-size: 22px;
+    font-size: 20px;
     margin-top: 10px;
     margin-bottom: 10px;
 }
@@ -17,7 +17,7 @@ h2 {
 .ArgandDiagram > svg {
     position: static;
     width: 97%;
-    height: 99%;
+    height: 97%;
     border: 2px solid grey;
     border-radius: 5px;
 }
@@ -36,11 +36,11 @@ h2 {
 
 .ArgandDiagram > div#hideInputs {
     position: absolute;
-    z-index: 100;
+    z-index: 2;
     cursor: pointer;
     transform: rotate(90deg);
     font-size: 2rem;
-    margin-left: 3rem;
+    margin-left: 2em;
     margin-top: 1rem;
     padding: 0.2rem;
     border-radius: 8px;
@@ -63,7 +63,7 @@ h2 {
 
 .ArgandDiagram > #zoom-controls > * {
     position: absolute;
-    right: 2rem;
+    right: 2.5rem;
     padding: 0.2rem;
     font-size: 1.2rem;
     border: 1px solid black;
@@ -88,47 +88,6 @@ h2 {
     background-color: #2196f3;
     border: 2px solid #1976d2;
     color: white;
-}
-
-.ArgandDiagram > #zoom-controls > #info {
-    top: 8rem;
-    background-color: #8a4fff;
-    border: 2px solid #5d3fd3;
-    color: white;
-    border-radius: 50%;
-    aspect-ratio: 1/1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.ArgandDiagram > #hints {
-    background-color: #fff9c4;
-    border: 2px solid #283593;
-    color: #333333;
-    border-radius: 8px;
-    margin-right: 10px;
-    text-align: initial;
-
-    position: absolute;
-    padding: 1rem;
-    width: 100%;
-    max-width: 400px;
-    right: 5rem;
-    top: 8rem;
-    display: none;
-}
-
-.ArgandDiagram > #hints > ul {
-    margin: 0px;
-}
-.ArgandDiagram > #hints > ul > li {
-    margin: -5px;
-    padding: 0;
-}
-.ArgandDiagram > #hints > ul > li::marker {
-    color: #ffa726; /* Change bullet color */
-    font-size: 1.5em; /* Resize the bullet */
 }
 
 .ArgandDiagram input {
@@ -170,9 +129,12 @@ h2 {
     }
     .ArgandDiagram > #AllInputs {
         margin-left: 5%;
-        margin-top: 1rem;
+        margin-top: 0.5rem;
     }
     .ArgandDiagram > #zoom-controls > * {
         right: 5%;
+    }
+    .ArgandDiagram input {
+        font-size: 1rem;
     }
 }

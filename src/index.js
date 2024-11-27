@@ -1,4 +1,3 @@
-console.clear();
 const argandDiagrams = document.getElementsByClassName("ArgandDiagram");
 
 // Function to create the Argand Diagram elements
@@ -32,36 +31,6 @@ function createArgandDiagram(container) {
   zoomOut.id = "zoomOut";
   zoomOut.textContent = "-";
 
-  const useCase = document.createElement("div");
-  useCase.id = "info";
-  useCase.textContent = "?";
-
-  const informationOnUse = document.createElement("div");
-  informationOnUse.id = "hints";
-  informationOnUse.innerHTML = `
-    <strong>Circles:</strong>
-    <ul>
-      <li>| Z | = 3: Circle at (0, 0), radius 3</li>
-      <li>| Z - i + 2 | = 4: Circle at (-2, 1), radius 4</li>
-      <li>| Z - i | > 3: Area outside radius 3 from (0, 0)</li>
-      <li>| Z + 2 | <= 3: Area within radius 3 from (-2, 0)</li>
-    </ul>
-    <hr />
-
-    <strong>Points:</strong>
-    <ul>
-      <li>(a, b): Point at (a, b)</li>
-    </ul>
-    <hr />
-
-    <strong>Lines:</strong>
-    <ul>
-      <li>Im( Z ) = 3: Line at 3i</li>
-      <li>Re( Z ) = 4: Line at 4</li>
-      <li>Im( Z ) >= 3: Area above and at 3i</li>
-    </ul>
-  `;
-
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.id = "svg";
 
@@ -70,8 +39,6 @@ function createArgandDiagram(container) {
   allInputs.appendChild(inputContainer);
   zoomControls.appendChild(zoomIn);
   zoomControls.appendChild(zoomOut);
-  zoomControls.appendChild(useCase);
-  container.appendChild(informationOnUse);
   container.appendChild(hideInputs);
   container.appendChild(allInputs);
   container.appendChild(zoomControls);
@@ -85,24 +52,85 @@ for (const diagram of argandDiagrams) {
   const toggleMenu = diagram.querySelector("div#hideInputs");
   const zoomIn = diagram.querySelector("div#zoomIn");
   const zoomOut = diagram.querySelector("div#zoomOut");
-  const info = diagram.querySelector("div#info");
-  const hints = diagram.querySelector("#hints");
 
-  zoomIn.addEventListener("click", () => {
-    virtualScale += scale;
-  });
+  // Set SVG dimensions
+  let temp = diagram.getBoundingClientRect();
 
-  zoomOut.addEventListener("click", () => {
+  // Scaling according to css
+  svg.setAttribute("width", temp.width * 0.97);
+  svg.setAttribute("height", temp.height * 0.97);
+
+  const width = svg.getAttribute("width");
+  const height = svg.getAttribute("height");
+  const centerX = Math.floor(width / 2); // Center of SVG for x-axis
+  const centerY = Math.floor(height / 2); // Center of SVG for y-axis
+  const scale = 35; // 1 unit = 35 pixels
+  let virtualScale = scale; // This is the scale that user sees on zoom controlling
+
+  zoomIn.addEventListener("click", () => zoomingIn());
+
+  function zoomingIn() {
     virtualScale -= scale;
-  });
+    if (virtualScale < scale) {
+      virtualScale = scale;
+      return;
+    }
+    onInput();
+  }
 
-  info.addEventListener("click", () => {
-    hints.style.display = hints.style.display === "block" ? "none" : "block";
-  });
+  zoomOut.addEventListener("click", () => zoomingOut());
+
+  function zoomingOut() {
+    virtualScale += scale;
+    onInput();
+  }
+
+  // SCROLL?
+  // const scrollDirection = document.getElementById("scroll-direction");
+  // let lastScrollTop = 0;
+  // // Extra function for optimizing scrolling for the user
+  // function throttle(func, limit) {
+  //   let lastFunc;
+  //   let lastRan;
+  //   return function () {
+  //     const context = this;
+  //     const args = arguments;
+  //     if (!lastRan) {
+  //       func.apply(context, args);
+  //       lastRan = Date.now();
+  //     } else {
+  //       clearTimeout(lastFunc);
+  //       lastFunc = setTimeout(
+  //         () => {
+  //           if (Date.now() - lastRan >= limit) {
+  //             func.apply(context, args);
+  //             lastRan = Date.now();
+  //           }
+  //         },
+  //         limit - (Date.now() - lastRan),
+  //       );
+  //     }
+  //   };
+  // }
+
+  // // Scroll handler
+  // function detectScrollDirection() {
+  //   const scrollTop = window.scrollY;
+  //   if (scrollTop > lastScrollTop) {
+  //     scrollDirection.textContent = "Direction: Down";
+  //   } else if (scrollTop < lastScrollTop) {
+  //     scrollDirection.textContent = "Direction: Up";
+  //   }
+  //   lastScrollTop = scrollTop;
+  // }
+
+  // // Attach throttled scroll handler
+  // window.addEventListener("scroll", throttle(detectScrollDirection, 100));
+  // SCROLL END
 
   toggleMenu.addEventListener("click", () => {
     const equationInputsTemp = diagram.querySelectorAll(
-      "div#AllInputs input[type='text'], div#zoomIn, div#zoomOut, div#info",
+      "div#AllInputs input[type='text'], div#zoomIn, div#zoomOut",
     );
 
     equationInputsTemp.forEach((input) => {
@@ -110,22 +138,7 @@ for (const diagram of argandDiagrams) {
     });
   });
 
-  // Set SVG dimensions
-  let temp = diagram.getBoundingClientRect();
-
-  // Scaling according to css
-  svg.setAttribute("width", temp.width * 0.97);
-  svg.setAttribute("height", temp.height * 0.99);
-
-  const width = svg.getAttribute("width");
-  const height = svg.getAttribute("height");
-  const centerX = Math.floor(width / 2); // Center of SVG for x-axis
-  const centerY = Math.floor(height / 2); // Center of SVG for y-axis
-  const scale = 35; // 1 unit = 35 pixels
-  let virtualScale = scale; // This is the scale that user see on zoom controlling: Placebo maybe?
-
   const allInputs = diagram.querySelectorAll("#inputs input");
-
   function addInputEventListener(inputField) {
     function handleKeyPress(event) {
       // Not perfect but get's the job done hopefully
@@ -167,17 +180,21 @@ for (const diagram of argandDiagrams) {
     inputField.addEventListener("keypress", handleKeyPress);
     inputField.addEventListener("keypress", (event) => {
       if (event.key === "Enter") {
-        drawAxesAndGridAndTickMarkings(svg, centerX, centerY, scale);
-
-        const equationInputsTemp = diagram.querySelectorAll(
-          "div#AllInputs input[type='text']",
-        );
-
-        equationInputsTemp.forEach((inputFields) => {
-          const equation = inputFields.value.trim();
-          plotComplexNumber(equation, svg, centerX, centerY, scale);
-        });
+        onInput();
       }
+    });
+  }
+
+  function onInput() {
+    drawAxesAndGridAndTickMarkings(svg, centerX, centerY, scale);
+
+    const equationInputsTemp = diagram.querySelectorAll(
+      "div#AllInputs input[type='text']",
+    );
+
+    equationInputsTemp.forEach((inputFields) => {
+      const equation = inputFields.value.trim();
+      plotComplexNumber(equation, svg, centerX, centerY, scale);
     });
   }
 
@@ -223,12 +240,12 @@ for (const diagram of argandDiagrams) {
       PosReal.setAttribute("stroke", "white");
       PosReal.setAttribute("stroke-width", "2");
       PosReal.setAttribute("paint-order", "stroke");
-      PosReal.textContent = `${varValue}`;
+      PosReal.textContent = `${(varValue * virtualScale) / scale}`;
       svg.appendChild(PosReal);
 
       // Mirror value print in opposite direction
       let NegReal = PosReal.cloneNode(true);
-      NegReal.textContent = `-${varValue}`;
+      NegReal.textContent = `-${(varValue * virtualScale) / scale}`;
       if (Math.abs(varValue) < 10) {
         NegReal.setAttribute(
           "x",
@@ -237,7 +254,7 @@ for (const diagram of argandDiagrams) {
       } else {
         NegReal.setAttribute(
           "x",
-          centerX - scale * varValue - fontSize + (fontSize / 7) * 2,
+          centerX - scale * varValue - fontSize + NegReal.textContent.length,
         );
       }
       svg.appendChild(NegReal);
@@ -261,13 +278,13 @@ for (const diagram of argandDiagrams) {
       NegImag.setAttribute("stroke", "white");
       NegImag.setAttribute("stroke-width", "1");
       NegImag.setAttribute("paint-order", "stroke");
-      NegImag.textContent = `-${varValue}𝑖`;
+      NegImag.textContent = `-${(varValue * virtualScale) / scale}𝑖`;
       svg.appendChild(NegImag);
 
       // Mirror value print in opposite direction
       let PosImag = NegImag.cloneNode(true);
       PosImag.setAttribute("x", centerX + fontSize / 3);
-      PosImag.textContent = `${varValue}𝑖`;
+      PosImag.textContent = `${(varValue * virtualScale) / scale}𝑖`;
       PosImag.setAttribute("y", centerY - scale * varValue + fontSize / 4 - 1);
 
       svg.appendChild(PosImag);
@@ -431,17 +448,14 @@ for (const diagram of argandDiagrams) {
           real = -1 * real;
           imaginary = -1 * imaginary;
         } catch (error) {
-          console.log(
-            "Not another format but Invalid Entry (empty or gibrish)",
-          );
           return;
         }
       }
     }
 
     // Convert to canvas coordinates
-    const canvasX = centerX + real * scale;
-    const canvasY = centerY - imaginary * scale;
+    const canvasX = centerX + (real * scale) / (virtualScale / scale);
+    const canvasY = centerY - (imaginary * scale) / (virtualScale / scale);
 
     // Draw the line for real and imaginary circles
     if (other) {
@@ -550,11 +564,11 @@ for (const diagram of argandDiagrams) {
             "circle",
           );
           let parts = other.split(",").map((part) => part.trim());
-          let radius = parseFloat(parts[1]);
+          let radius = (parseFloat(parts[1]) * scale * scale) / virtualScale;
           let operator = parts[2];
-          circle.setAttribute("cx", centerX + real * scale);
-          circle.setAttribute("cy", centerY - imaginary * scale);
-          circle.setAttribute("r", radius * scale);
+          circle.setAttribute("cx", canvasX);
+          circle.setAttribute("cy", canvasY);
+          circle.setAttribute("r", radius);
           circle.setAttribute("stroke", "blue");
           if (!operator.includes("=")) {
             circle.setAttribute("stroke-dasharray", "10, 15"); // Dotted effect
@@ -620,8 +634,6 @@ for (const diagram of argandDiagrams) {
             svg.appendChild(mask);
             svg.appendChild(rect);
           }
-
-          // Always append the circle last
           svg.appendChild(circle);
         }
       } catch (error) {
