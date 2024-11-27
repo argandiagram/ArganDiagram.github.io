@@ -86,7 +86,7 @@ for (const diagram of argandDiagrams) {
       let regexPattern = [
         /^\s*\(\s*-?\d*\.?\d+\s*,\s*-?\d*\.?\d+\s*\)\s*/,
         /^\s*im|re\s*\(\s*[A-Za-z]+\s*\)\s*\>=|\<=|>|<|=\s*\+?\s*\(?-?\d*\.?\d+\)?\s*/i,
-        /^\s*\|\s*[a-zA-Z]\s*([+-]\s*\d*\.?\d*(i)?\s*)*\|\s*=\s*[+-]?\d*\.?\d+\s*$/,
+        /^\s*\|\s*[a-zA-Z]\s*([+-]\s*\d*\.?\d*(i)?\s*)*\|\s*\>|\<|\=\s*[+-]?\d*\.?\d+\s*$/,
       ];
       let isInValid = true;
       for (const pattern of regexPattern) {
@@ -145,7 +145,7 @@ for (const diagram of argandDiagrams) {
     // Clear SVG
     svg.innerHTML = "";
 
-    pointsOnThePlot(svg, centerX, centerY, 0, 0); // Center of the screen
+    circlesOnThePlot(svg, centerX, centerY, 0, 0); // Center of the screen
 
     // Draw grid
     drawGrid(svg, centerX, centerY, scale);
@@ -338,7 +338,7 @@ for (const diagram of argandDiagrams) {
         try {
           // Check if the equation matches the expected format
           const formatRegex =
-            /^\s*\|\s*[a-zA-Z]\s*([+-]\s*\d*\.?\d*(i)?\s*)*\|\s*=\s*[+-]?\d*\.?\d+\s*$/;
+            /^\s*\|\s*[a-zA-Z]\s*([+-]\s*\d*\.?\d*(i)?\s*)*\|\s*\>|\<|\=\s*[+-]?\d*\.?\d+\s*$/;
           if (!formatRegex.test(equation)) {
             throw new Error("Invalid format");
           }
@@ -397,7 +397,7 @@ for (const diagram of argandDiagrams) {
     const canvasX = centerX + real * scale;
     const canvasY = centerY - imaginary * scale;
 
-    // Draw the line for real and imaginary points
+    // Draw the line for real and imaginary circles
     if (other) {
       try {
         if (other.includes("RE")) {
@@ -499,63 +499,106 @@ for (const diagram of argandDiagrams) {
           }
         } else if (other.includes("CIRCLE")) {
           // Draw Circle
-          const point = document.createElementNS(
+          const circle = document.createElementNS(
             "http://www.w3.org/2000/svg",
             "circle",
           );
           let parts = other.split(",").map((part) => part.trim());
           let radius = parseFloat(parts[1]);
           let operator = parts[2];
-          point.setAttribute("cx", centerX + real * scale);
-          point.setAttribute("cy", centerY - imaginary * scale);
-          point.setAttribute("r", radius * scale);
-          point.setAttribute("stroke", "blue");
+          circle.setAttribute("cx", centerX + real * scale);
+          circle.setAttribute("cy", centerY - imaginary * scale);
+          circle.setAttribute("r", radius * scale);
+          circle.setAttribute("stroke", "blue");
           if (!operator.includes("=")) {
-            point.setAttribute("stroke-dasharray", "5, 5"); // Dotted effect
+            circle.setAttribute("stroke-dasharray", "10, 15"); // Dotted effect
           }
-          point.setAttribute("stroke-width", "2");
+          circle.setAttribute("stroke-width", "2");
 
-          point.setAttribute("fill", "none");
+          circle.setAttribute("fill", "none");
+
           if (operator.includes("<")) {
-            point.setAttribute("fill", "rgba(0, 0, 255, 0.3)");
+            circle.setAttribute("fill", "rgba(0, 0, 255, 0.3)");
           } else if (operator.includes(">")) {
+            // Create the main rectangle covering the entire area
             const rect = document.createElementNS(
               "http://www.w3.org/2000/svg",
               "rect",
             );
-            rect.setAttribute("fill", "blue");
-            rect.setAttribute("fill-opacity", "0.3");
+            rect.setAttribute("fill", "black");
+            rect.setAttribute("fill-opacity", "0.4");
             rect.setAttribute("x", 0);
             rect.setAttribute("y", 0);
             rect.setAttribute("width", width);
             rect.setAttribute("height", height);
-            point.setAttribute("fill", "rgba(255, 255, 0, 0.3)");
 
+            // Create a mask to make the point area transparent
+            const mask = document.createElementNS(
+              "http://www.w3.org/2000/svg",
+              "mask",
+            );
+            mask.setAttribute("id", "transparentPointMask");
+
+            // Create a white background that covers the entire SVG
+            const maskRect = document.createElementNS(
+              "http://www.w3.org/2000/svg",
+              "rect",
+            );
+            maskRect.setAttribute("x", 0);
+            maskRect.setAttribute("y", 0);
+            maskRect.setAttribute("width", width);
+            maskRect.setAttribute("height", height);
+            maskRect.setAttribute("fill", "white");
+
+            // Create a black circle to create a transparent "hole"
+            const maskCircle = document.createElementNS(
+              "http://www.w3.org/2000/svg",
+              "circle",
+            );
+            maskCircle.setAttribute("cx", circle.getAttribute("cx"));
+            maskCircle.setAttribute("cy", circle.getAttribute("cy"));
+            maskCircle.setAttribute("r", circle.getAttribute("r"));
+            maskCircle.setAttribute("fill", "black");
+
+            // Add elements to the mask
+            mask.appendChild(maskRect);
+            mask.appendChild(maskCircle);
+
+            // Apply the mask to the rectangle
+            rect.setAttribute("mask", "url(#transparentPointMask)");
+
+            // Yellow semi-transparent fill for the circle
+            circle.setAttribute("fill", "none");
+
+            // Append mask and rectangle to SVG first
+            svg.appendChild(mask);
             svg.appendChild(rect);
           }
-          svg.appendChild(point);
+
+          // Always append the circle last
+          svg.appendChild(circle);
         }
       } catch (error) {
         return;
       }
     }
-    pointsOnThePlot(svg, canvasX, canvasY, real, imaginary, other); // Draw the point's location on the plane
+    circlesOnThePlot(svg, canvasX, canvasY, real, imaginary, other); // Draw the circle's location on the plane
   }
 
-  const allSVGPointTexts = new Set();
-  function pointsOnThePlot(svg, X, Y, displayX, displayY, other = "") {
+  const allSVGcircleTexts = new Set();
+  function circlesOnThePlot(svg, X, Y, displayX, displayY, other = "") {
     if (other) if (!other.includes("CIRCLE")) return;
 
-    // Draw the point
-    const point = document.createElementNS(
+    // Draw the circle
+    const circle = document.createElementNS(
       "http://www.w3.org/2000/svg",
       "circle",
     );
-    point.setAttribute("cx", X);
-    point.setAttribute("cy", Y);
-    point.setAttribute("fill", "blue");
-    point.setAttribute("r", 3);
-    svg.appendChild(point);
+    circle.setAttribute("cx", X);
+    circle.setAttribute("cy", Y);
+    circle.setAttribute("fill", "blue");
+    circle.setAttribute("r", 3);
+    svg.appendChild(circle);
 
     // Create an SVG <text> element
     const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
@@ -585,7 +628,7 @@ for (const diagram of argandDiagrams) {
     }
     text.style.display = "none"; // Hide the text
 
-    const hoverPoints = function (event) {
+    const hovercircles = function (event) {
       const rect = svg.getBoundingClientRect(); // Get the SVG's position
       const mouseX = event.clientX - rect.left; // Mouse X relative to SVG
       const mouseY = event.clientY - rect.top; // Mouse Y relative to SVG
@@ -606,7 +649,7 @@ for (const diagram of argandDiagrams) {
 
     let isHoverEnabled = true;
     const mouseMoveHandler = function (event) {
-      if (isHoverEnabled && hoverPoints(event)) {
+      if (isHoverEnabled && hovercircles(event)) {
         text.style.display = "block"; // Show the text
       } else {
         text.style.display = "none"; // Hide the text
@@ -614,7 +657,7 @@ for (const diagram of argandDiagrams) {
     };
 
     const clickHandler = function (event) {
-      if (hoverPoints(event)) {
+      if (hovercircles(event)) {
         isHoverEnabled = !isHoverEnabled;
         if (isHoverEnabled) {
           svg.addEventListener("mousemove", mouseMoveHandler);
