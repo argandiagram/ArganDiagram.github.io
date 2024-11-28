@@ -80,31 +80,31 @@ for (const diagram of argandDiagrams) {
   let centerX = Math.floor(width / 2); // Center of SVG for x-axis
   let centerY = Math.floor(height / 2); // Center of SVG for y-axis
 
-  let isDragging = false;
-  let startX = 0;
-  let startY = 0;
-  diagram.addEventListener("mousedown", (event) => {
-    isDragging = true;
-    startX = event.clientX;
-    startY = event.clientY;
-    diagram.style.cursor = "grabbing";
-  });
+  // let isDragging = false;
+  // let startX = 0;
+  // let startY = 0;
+  // diagram.addEventListener("mousedown", (event) => {
+  //   isDragging = true;
+  //   startX = event.clientX;
+  //   startY = event.clientY;
+  //   diagram.style.cursor = "grabbing";
+  // });
 
-  diagram.addEventListener("mousemove", (event) => {
-    if (isDragging) {
-      const dx = event.clientX - startX;
-      const dy = event.clientY - startY;
+  // diagram.addEventListener("mousemove", (event) => {
+  //   if (isDragging) {
+  //     const dx = event.clientX - startX;
+  //     const dy = event.clientY - startY;
 
-      centerX += dx / 10;
-      centerY += dy / 10;
-      onInput();
-    }
-  });
+  //     centerX += dx / 10;
+  //     centerY += dy / 10;
+  //     onInput();
+  //   }
+  // });
 
-  diagram.addEventListener("mouseup", () => {
-    isDragging = false;
-    diagram.style.cursor = "default";
-  });
+  // diagram.addEventListener("mouseup", () => {
+  //   isDragging = false;
+  //   diagram.style.cursor = "default";
+  // });
 
   let scale = 50; // 1 unit = 50 pixels (constant)
   let virtualScale = scale; // This is the scale that user sees on zoom controlling
