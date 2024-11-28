@@ -64,6 +64,9 @@ for (const diagram of argandDiagrams) {
     virtualScale = scale;
     onInput();
     // location.reload();
+    let temp = diagram.getBoundingClientRect();
+    centerX = Math.floor((temp.width * 0.97) / 2);
+    centerY = Math.floor((temp.height * 0.97) / 2);
   });
   // Set SVG dimensions
   let temp = diagram.getBoundingClientRect();
@@ -74,12 +77,37 @@ for (const diagram of argandDiagrams) {
 
   const width = svg.getAttribute("width");
   const height = svg.getAttribute("height");
-  const centerX = Math.floor(width / 2); // Center of SVG for x-axis
-  const centerY = Math.floor(height / 2); // Center of SVG for y-axis
+  let centerX = Math.floor(width / 2); // Center of SVG for x-axis
+  let centerY = Math.floor(height / 2); // Center of SVG for y-axis
+
+  let isDragging = false;
+  let startX = 0;
+  let startY = 0;
+  diagram.addEventListener("mousedown", (event) => {
+    isDragging = true;
+    startX = event.clientX;
+    startY = event.clientY;
+    diagram.style.cursor = "grabbing";
+  });
+
+  diagram.addEventListener("mousemove", (event) => {
+    if (isDragging) {
+      const dx = event.clientX - startX;
+      const dy = event.clientY - startY;
+
+      centerX += dx / 10;
+      centerY += dy / 10;
+      onInput();
+    }
+  });
+
+  diagram.addEventListener("mouseup", () => {
+    isDragging = false;
+    diagram.style.cursor = "default";
+  });
 
   let scale = 50; // 1 unit = 50 pixels (constant)
   let virtualScale = scale; // This is the scale that user sees on zoom controlling
-
   let lastTouchDistance = 0;
 
   diagram.addEventListener("wheel", (event) => {
