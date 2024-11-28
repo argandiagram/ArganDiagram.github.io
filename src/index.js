@@ -31,14 +31,21 @@ function createArgandDiagram(container) {
   zoomOut.id = "zoomOut";
   zoomOut.textContent = "-";
 
+  const zoomReset = document.createElement("div");
+  zoomReset.id = "zoomReset";
+  zoomReset.textContent = "*";
+
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.id = "svg";
 
   // Append the elements to the container
   inputContainer.appendChild(input);
   allInputs.appendChild(inputContainer);
+
   zoomControls.appendChild(zoomIn);
   zoomControls.appendChild(zoomOut);
+  zoomControls.appendChild(zoomReset);
+
   container.appendChild(hideInputs);
   container.appendChild(allInputs);
   container.appendChild(zoomControls);
@@ -52,6 +59,10 @@ for (const diagram of argandDiagrams) {
   const toggleMenu = diagram.querySelector("div#hideInputs");
   const zoomIn = diagram.querySelector("div#zoomIn");
   const zoomOut = diagram.querySelector("div#zoomOut");
+  diagram.querySelector("div#zoomReset").addEventListener("click", () => {
+    virtualScale = scale;
+    onInput();
+  });
 
   // Set SVG dimensions
   let temp = diagram.getBoundingClientRect();
@@ -64,11 +75,20 @@ for (const diagram of argandDiagrams) {
   const height = svg.getAttribute("height");
   const centerX = Math.floor(width / 2); // Center of SVG for x-axis
   const centerY = Math.floor(height / 2); // Center of SVG for y-axis
-  const scale = 35; // 1 unit = 35 pixels
+  const scale = 35; // 1 unit = 35 pixels (constant)
   let virtualScale = scale; // This is the scale that user sees on zoom controlling
 
+  diagram.addEventListener("wheel", (event) => {
+    event.preventDefault();
+    // Determine zoom direction based on wheel delta
+    if (event.deltaY < 0) {
+      zoomingIn();
+    } else {
+      zoomingOut();
+    }
+  });
   zoomIn.addEventListener("click", () => zoomingIn());
-
+  zoomOut.addEventListener("click", () => zoomingOut());
   function zoomingIn() {
     virtualScale -= scale;
     if (virtualScale < scale) {
@@ -77,60 +97,14 @@ for (const diagram of argandDiagrams) {
     }
     onInput();
   }
-
-  zoomOut.addEventListener("click", () => zoomingOut());
-
   function zoomingOut() {
     virtualScale += scale;
     onInput();
   }
 
-  // SCROLL?
-  // const scrollDirection = document.getElementById("scroll-direction");
-  // let lastScrollTop = 0;
-  // // Extra function for optimizing scrolling for the user
-  // function throttle(func, limit) {
-  //   let lastFunc;
-  //   let lastRan;
-  //   return function () {
-  //     const context = this;
-  //     const args = arguments;
-  //     if (!lastRan) {
-  //       func.apply(context, args);
-  //       lastRan = Date.now();
-  //     } else {
-  //       clearTimeout(lastFunc);
-  //       lastFunc = setTimeout(
-  //         () => {
-  //           if (Date.now() - lastRan >= limit) {
-  //             func.apply(context, args);
-  //             lastRan = Date.now();
-  //           }
-  //         },
-  //         limit - (Date.now() - lastRan),
-  //       );
-  //     }
-  //   };
-  // }
-
-  // // Scroll handler
-  // function detectScrollDirection() {
-  //   const scrollTop = window.scrollY;
-  //   if (scrollTop > lastScrollTop) {
-  //     scrollDirection.textContent = "Direction: Down";
-  //   } else if (scrollTop < lastScrollTop) {
-  //     scrollDirection.textContent = "Direction: Up";
-  //   }
-  //   lastScrollTop = scrollTop;
-  // }
-
-  // // Attach throttled scroll handler
-  // window.addEventListener("scroll", throttle(detectScrollDirection, 100));
-  // SCROLL END
-
   toggleMenu.addEventListener("click", () => {
     const equationInputsTemp = diagram.querySelectorAll(
-      "div#AllInputs input[type='text'], div#zoomIn, div#zoomOut",
+      "div#AllInputs input[type='text'], div#zoomIn, div#zoomOut, div#zoomReset",
     );
 
     equationInputsTemp.forEach((input) => {
@@ -207,8 +181,6 @@ for (const diagram of argandDiagrams) {
   function drawAxesAndGridAndTickMarkings(svg, centerX, centerY, scale) {
     // Clear SVG
     svg.innerHTML = "";
-
-    circlesOnThePlot(svg, centerX, centerY, 0, 0); // Center of the screen
 
     // Draw grid
     drawGrid(svg, centerX, centerY, scale);

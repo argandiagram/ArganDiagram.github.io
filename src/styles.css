@@ -90,6 +90,16 @@ h3 {
     color: white;
 }
 
+.ArgandDiagram > #zoom-controls > #zoomReset {
+    top: 8rem;
+    background-color: white;
+    border: 1px solid red;
+    color: black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .ArgandDiagram input {
     text-align: center;
     width: 90%;
