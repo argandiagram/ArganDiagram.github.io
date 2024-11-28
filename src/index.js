@@ -32,8 +32,9 @@ function createArgandDiagram(container) {
   zoomOut.textContent = "-";
 
   const zoomReset = document.createElement("div");
+
   zoomReset.id = "zoomReset";
-  zoomReset.textContent = "*";
+  zoomReset.textContent = "#";
 
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.id = "svg";
@@ -62,6 +63,7 @@ for (const diagram of argandDiagrams) {
   diagram.querySelector("div#zoomReset").addEventListener("click", () => {
     virtualScale = scale;
     onInput();
+    // location.reload();
   });
 
   // Set SVG dimensions
@@ -75,13 +77,14 @@ for (const diagram of argandDiagrams) {
   const height = svg.getAttribute("height");
   const centerX = Math.floor(width / 2); // Center of SVG for x-axis
   const centerY = Math.floor(height / 2); // Center of SVG for y-axis
-  const scale = 35; // 1 unit = 35 pixels (constant)
+  let scale = 50; // 1 unit = 50 pixels (constant)
   let virtualScale = scale; // This is the scale that user sees on zoom controlling
 
   diagram.addEventListener("wheel", (event) => {
     event.preventDefault();
     // Determine zoom direction based on wheel delta
     if (event.deltaY < 0) {
+      3;
       zoomingIn();
     } else {
       zoomingOut();
@@ -90,6 +93,7 @@ for (const diagram of argandDiagrams) {
   zoomIn.addEventListener("click", () => zoomingIn());
   zoomOut.addEventListener("click", () => zoomingOut());
   function zoomingIn() {
+    let scaleFactor = 0;
     virtualScale -= scale;
     if (virtualScale < scale) {
       virtualScale = scale;
@@ -269,12 +273,30 @@ for (const diagram of argandDiagrams) {
     // Vertical grid lines
     for (let x = centerX % scale; x <= width; x += scale) {
       const line = createLine(x, 0, x, height, "#a0b0c0", 0.5);
+      const line2 = createLine(
+        x + scale / 2,
+        0,
+        x + scale / 2,
+        height,
+        "#a0b0c0",
+        0.25,
+      );
+      svg.appendChild(line2);
       svg.appendChild(line);
     }
 
     // Horizontal grid lines
     for (let y = centerY % scale; y <= height; y += scale) {
       const line = createLine(0, y, width, y, "#a0b0c0", 0.5);
+      const line2 = createLine(
+        0,
+        y + scale / 2,
+        width,
+        y + scale / 2,
+        "#a0b0c0",
+        0.25,
+      );
+      svg.appendChild(line2);
       svg.appendChild(line);
     }
 
@@ -541,9 +563,10 @@ for (const diagram of argandDiagrams) {
           circle.setAttribute("cx", canvasX);
           circle.setAttribute("cy", canvasY);
           circle.setAttribute("r", radius);
-          circle.setAttribute("stroke", "blue");
+          circle.setAttribute("stroke", "rgba(0, 0, 255, 0.7)");
           if (!operator.includes("=")) {
-            circle.setAttribute("stroke-dasharray", "10, 15"); // Dotted effect
+            circle.setAttribute("stroke", "blue");
+            circle.setAttribute("stroke-dasharray", "5, 5"); // Dotted effect
           }
           circle.setAttribute("stroke-width", "2");
 
@@ -599,7 +622,6 @@ for (const diagram of argandDiagrams) {
             // Apply the mask to the rectangle
             rect.setAttribute("mask", "url(#transparentPointMask)");
 
-            // Yellow semi-transparent fill for the circle
             circle.setAttribute("fill", "none");
 
             // Append mask and rectangle to SVG first
@@ -612,10 +634,9 @@ for (const diagram of argandDiagrams) {
         return;
       }
     }
-    circlesOnThePlot(svg, canvasX, canvasY, real, imaginary, other); // Draw the circle's location on the plane
+    circlesOnThePlot(svg, canvasX, canvasY, real, imaginary, other);
   }
 
-  const allSVGcircleTexts = new Set();
   function circlesOnThePlot(svg, X, Y, displayX, displayY, other = "") {
     if (other) if (!other.includes("CIRCLE")) return;
 
