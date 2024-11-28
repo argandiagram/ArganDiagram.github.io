@@ -65,7 +65,6 @@ for (const diagram of argandDiagrams) {
     onInput();
     // location.reload();
   });
-
   // Set SVG dimensions
   let temp = diagram.getBoundingClientRect();
 
@@ -77,21 +76,52 @@ for (const diagram of argandDiagrams) {
   const height = svg.getAttribute("height");
   const centerX = Math.floor(width / 2); // Center of SVG for x-axis
   const centerY = Math.floor(height / 2); // Center of SVG for y-axis
+
   let scale = 50; // 1 unit = 50 pixels (constant)
   let virtualScale = scale; // This is the scale that user sees on zoom controlling
 
+  let lastTouchDistance = 0;
+
   diagram.addEventListener("wheel", (event) => {
     event.preventDefault();
-    // Determine zoom direction based on wheel delta
     if (event.deltaY < 0) {
-      3;
       zoomingIn();
     } else {
       zoomingOut();
     }
   });
+
+  // For touch events (mobile zooming)
+  diagram.addEventListener("touchstart", (event) => {
+    if (event.touches.length === 2) {
+      lastTouchDistance = getTouchDistance(event.touches[0], event.touches[1]);
+    }
+  });
+
+  diagram.addEventListener("touchmove", (event) => {
+    if (event.touches.length === 2) {
+      const currentDistance = getTouchDistance(
+        event.touches[0],
+        event.touches[1],
+      );
+      if (lastTouchDistance) {
+        if (currentDistance < lastTouchDistance) {
+          zoomingOut();
+        } else if (currentDistance > lastTouchDistance) {
+          zoomingIn();
+        }
+      }
+      lastTouchDistance = currentDistance;
+    }
+  });
+
+  diagram.addEventListener("touchend", (event) => {
+    lastTouchDistance = 0;
+  });
+
   zoomIn.addEventListener("click", () => zoomingIn());
   zoomOut.addEventListener("click", () => zoomingOut());
+
   function zoomingIn() {
     let scaleFactor = 0;
     virtualScale -= scale;
@@ -101,9 +131,16 @@ for (const diagram of argandDiagrams) {
     }
     onInput();
   }
+
   function zoomingOut() {
     virtualScale += scale;
     onInput();
+  }
+
+  function getTouchDistance(touch1, touch2) {
+    const dx = touch2.clientX - touch1.clientX;
+    const dy = touch2.clientY - touch1.clientY;
+    return Math.sqrt(dx * dx + dy * dy);
   }
 
   toggleMenu.addEventListener("click", () => {
@@ -116,7 +153,6 @@ for (const diagram of argandDiagrams) {
     });
   });
 
-  const allInputs = diagram.querySelectorAll("#inputs input");
   function addInputEventListener(inputField) {
     function handleKeyPress(event) {
       // Not perfect but get's the job done hopefully
