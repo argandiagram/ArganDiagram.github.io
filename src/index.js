@@ -134,9 +134,9 @@ function main() {
     diagram.addEventListener("wheel", (event) => {
       event.preventDefault();
       if (event.deltaY < 0) {
-        zoomingIn();
+        zoomingIn((count = 1));
       } else {
-        zoomingOut();
+        zoomingOut((count = 1));
       }
     });
 
@@ -180,20 +180,22 @@ function main() {
         if (scale > 300) {
           scale = 300;
         }
-        virtualScale -= Math.round(scale);
-        virtualScale = Math.max(virtualScale, scale);
       }
+      virtualScale -= Math.round(scale);
+      virtualScale = Math.max(virtualScale, scale);
       onInput();
     }
 
-    function zoomingOut() {
-      if (scale > 100) {
-        scale -= 0.1;
-      } else {
-        scale -= 0.05;
-      }
-      if (scale < SCALE - 10) {
-        scale = SCALE - 10;
+    function zoomingOut(count = 1) {
+      for (let i = 0; i < count; i++) {
+        if (scale > 100) {
+          scale -= 0.1;
+        } else {
+          scale -= 0.05;
+        }
+        if (scale < SCALE - 10) {
+          scale = SCALE - 10;
+        }
       }
       virtualScale += Math.round(scale);
       onInput();
