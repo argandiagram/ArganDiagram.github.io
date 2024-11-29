@@ -62,11 +62,11 @@ for (const diagram of argandDiagrams) {
   const zoomOut = diagram.querySelector("div#zoomOut");
   diagram.querySelector("div#zoomReset").addEventListener("click", () => {
     virtualScale = scale;
-    onInput();
-    // location.reload();
     let temp = diagram.getBoundingClientRect();
     centerX = Math.floor((temp.width * 0.97) / 2);
     centerY = Math.floor((temp.height * 0.97) / 2);
+    scale = 50;
+    onInput();
   });
   // Set SVG dimensions
   let temp = diagram.getBoundingClientRect();
@@ -151,17 +151,24 @@ for (const diagram of argandDiagrams) {
   zoomOut.addEventListener("click", () => zoomingOut());
 
   function zoomingIn() {
-    let scaleFactor = 0;
-    virtualScale -= scale;
-    if (virtualScale < scale) {
-      virtualScale = scale;
-      return;
+    scale += 0.01;
+    if (scale > 60) {
+      scale = 60;
     }
+    virtualScale -= Math.round(scale);
+    // if (virtualScale < scale) {
+    //   virtualScale = scale;
+    //   return;
+    // }
     onInput();
   }
 
   function zoomingOut() {
-    virtualScale += scale;
+    scale -= 0.01;
+    if (scale < 40) {
+      scale = 40;
+    }
+    virtualScale += Math.round(scale);
     onInput();
   }
 
@@ -261,42 +268,34 @@ for (const diagram of argandDiagrams) {
     svg.appendChild(yAxis);
 
     // Draw tick markings:
-    let fontSize = 14,
+    let fontSize = 10,
       varValue = 1;
     for (let x = centerX % scale; x <= width; x += scale) {
       let PosReal = document.createElementNS(
         "http://www.w3.org/2000/svg",
         "text",
       );
-      if (Math.abs(varValue) < 10) {
-        PosReal.setAttribute("x", centerX + scale * varValue - fontSize / 4);
-      } else {
-        PosReal.setAttribute("x", centerX + scale * varValue - fontSize / 2);
-      }
-      PosReal.setAttribute("y", centerY - scale / 9);
+      PosReal.setAttribute("y", centerY - fontSize / 2);
       PosReal.setAttribute("font-size", fontSize);
       PosReal.setAttribute("fill", "black");
       PosReal.setAttribute("fontFamily", "Monaco");
       PosReal.setAttribute("stroke", "white");
       PosReal.setAttribute("stroke-width", "2");
       PosReal.setAttribute("paint-order", "stroke");
-      PosReal.textContent = `${(varValue * virtualScale) / scale}`;
+      PosReal.textContent = `${Math.round((varValue * virtualScale) / scale)}`;
+      PosReal.setAttribute(
+        "x",
+        centerX + scale * varValue - PosReal.textContent.length * 2,
+      );
       svg.appendChild(PosReal);
 
       // Mirror value print in opposite direction
       let NegReal = PosReal.cloneNode(true);
-      NegReal.textContent = `-${(varValue * virtualScale) / scale}`;
-      if (Math.abs(varValue) < 10) {
-        NegReal.setAttribute(
-          "x",
-          centerX - scale * varValue + fontSize / 2 - fontSize,
-        );
-      } else {
-        NegReal.setAttribute(
-          "x",
-          centerX - scale * varValue - fontSize + NegReal.textContent.length,
-        );
-      }
+      NegReal.textContent = `-${Math.round((varValue * virtualScale) / scale)}`;
+      NegReal.setAttribute(
+        "x",
+        centerX - scale * varValue - NegReal.textContent.length * 2,
+      );
       svg.appendChild(NegReal);
 
       varValue++;
@@ -310,21 +309,21 @@ for (const diagram of argandDiagrams) {
       );
 
       NegImag.setAttribute("x", centerX + 4);
-      NegImag.setAttribute("y", centerY + scale * varValue + fontSize / 4 - 1);
-
       NegImag.setAttribute("font-size", fontSize);
       NegImag.setAttribute("fill", "black");
       NegImag.setAttribute("fontFamily", "Monaco");
       NegImag.setAttribute("stroke", "white");
       NegImag.setAttribute("stroke-width", "1");
       NegImag.setAttribute("paint-order", "stroke");
-      NegImag.textContent = `-${(varValue * virtualScale) / scale}𝑖`;
+      NegImag.textContent = `-${Math.round((varValue * virtualScale) / scale)}𝑖`;
+
+      NegImag.setAttribute("y", centerY + scale * varValue + fontSize / 4 - 1);
       svg.appendChild(NegImag);
 
       // Mirror value print in opposite direction
       let PosImag = NegImag.cloneNode(true);
       PosImag.setAttribute("x", centerX + fontSize / 3);
-      PosImag.textContent = `${(varValue * virtualScale) / scale}𝑖`;
+      PosImag.textContent = `${Math.round((varValue * virtualScale) / scale)}𝑖`;
       PosImag.setAttribute("y", centerY - scale * varValue + fontSize / 4 - 1);
 
       svg.appendChild(PosImag);
@@ -336,32 +335,68 @@ for (const diagram of argandDiagrams) {
   function drawGrid(svg, centerX, centerY, scale) {
     // Vertical grid lines
     for (let x = centerX % scale; x <= width; x += scale) {
-      const line = createLine(x, 0, x, height, "#a0b0c0", 0.5);
+      const line = createLine(x, 0, x, height, "#a0c0e0", 0.5);
       const line2 = createLine(
         x + scale / 2,
         0,
         x + scale / 2,
         height,
-        "#a0b0c0",
+        "#a0c0e0",
         0.25,
       );
-      svg.appendChild(line2);
+      const line3 = createLine(
+        x + scale / 4,
+        0,
+        x + scale / 4,
+        height,
+        "#a0c0e0",
+        0.1,
+      );
+      const line4 = createLine(
+        x + (scale * 3) / 4,
+        0,
+        x + (scale * 3) / 4,
+        height,
+        "#a0c0e0",
+        0.1,
+      );
       svg.appendChild(line);
+      svg.appendChild(line2);
+      svg.appendChild(line3);
+      svg.appendChild(line4);
     }
 
     // Horizontal grid lines
     for (let y = centerY % scale; y <= height; y += scale) {
-      const line = createLine(0, y, width, y, "#a0b0c0", 0.5);
+      const line = createLine(0, y, width, y, "#a0c0e0", 0.5);
       const line2 = createLine(
         0,
         y + scale / 2,
         width,
         y + scale / 2,
-        "#a0b0c0",
+        "#a0c0e0",
         0.25,
       );
-      svg.appendChild(line2);
+      const line3 = createLine(
+        0,
+        y + scale / 4,
+        width,
+        y + scale / 4,
+        "#a0c0e0",
+        0.1,
+      );
+      const line4 = createLine(
+        0,
+        y + (scale * 3) / 4,
+        width,
+        y + (scale * 3) / 4,
+        "#a0c0e0",
+        0.1,
+      );
       svg.appendChild(line);
+      svg.appendChild(line2);
+      svg.appendChild(line3);
+      svg.appendChild(line4);
     }
 
     // Axis Name:
