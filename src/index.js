@@ -1,4 +1,8 @@
 window.onload = () => {
+  main();
+};
+
+function main() {
   const argandDiagrams = document.getElementsByClassName("ArgandDiagram");
 
   // Function to create the Argand Diagram elements
@@ -54,6 +58,7 @@ window.onload = () => {
     container.appendChild(svg);
   }
 
+  const SCALE = 60;
   for (const diagram of argandDiagrams) {
     const svg = diagram.querySelector("svg");
     const equationInputs = diagram.querySelectorAll("input[type='text']");
@@ -62,11 +67,11 @@ window.onload = () => {
     const zoomIn = diagram.querySelector("div#zoomIn");
     const zoomOut = diagram.querySelector("div#zoomOut");
     diagram.querySelector("div#zoomReset").addEventListener("click", () => {
-      virtualScale = scale;
       let temp = diagram.getBoundingClientRect();
       centerX = Math.floor((temp.width * 0.97) / 2);
       centerY = Math.floor((temp.height * 0.97) / 2);
-      scale = 50;
+      scale = SCALE;
+      virtualScale = SCALE;
       onInput();
     });
     // Set SVG dimensions
@@ -81,33 +86,51 @@ window.onload = () => {
     let centerX = Math.floor(width / 2); // Center of SVG for x-axis
     let centerY = Math.floor(height / 2); // Center of SVG for y-axis
 
-    // let isDragging = false;
-    // let startX = 0;
-    // let startY = 0;
-    // diagram.addEventListener("mousedown", (event) => {
-    //   isDragging = true;
-    //   startX = event.clientX;
-    //   startY = event.clientY;
-    //   diagram.style.cursor = "grabbing";
-    // });
+    let isDragging = false;
+    let startX = 0;
+    let startY = 0;
 
-    // diagram.addEventListener("mousemove", (event) => {
-    //   if (isDragging) {
-    //     const dx = event.clientX - startX;
-    //     const dy = event.clientY - startY;
+    diagram.addEventListener("mousedown", (event) => {
+      diagram.style.cursor = "grabbing";
+      const startX = event.clientX;
+      const startY = event.clientY;
 
-    //     centerX += dx / 10;
-    //     centerY += dy / 10;
-    //     onInput();
-    //   }
-    // });
+      const moveHandler = (moveEvent) => {
+        const dx = moveEvent.clientX - startX;
+        const dy = moveEvent.clientY - startY;
+        centerX += dx / 18;
+        centerY += dy / 18;
 
-    // diagram.addEventListener("mouseup", () => {
-    //   isDragging = false;
-    //   diagram.style.cursor = "default";
-    // });
+        if (centerX > width - 100) {
+          centerX = width - 100;
+        } else if (centerX < 100) {
+          centerX = 100;
+        }
 
-    let scale = 50; // 1 unit = 50 pixels (constant)
+        if (centerY > height - 100) {
+          centerY = height - 100;
+        } else if (centerY < 100) {
+          centerY = 100;
+        }
+
+        onInput();
+      };
+
+      const upHandler = () => {
+        document.removeEventListener("mousemove", moveHandler);
+        document.removeEventListener("mouseup", upHandler);
+      };
+
+      document.addEventListener("mousemove", moveHandler);
+      document.addEventListener("mouseup", upHandler);
+    });
+
+    diagram.addEventListener("mouseup", () => {
+      isDragging = false;
+      diagram.style.cursor = "default";
+    });
+
+    let scale = SCALE; // 1 unit = 60 pixels (constant but changing for zoom effects)
     let virtualScale = scale; // This is the scale that user sees on zoom controlling
     let lastTouchDistance = 0;
 
@@ -155,22 +178,18 @@ window.onload = () => {
     zoomOut.addEventListener("click", () => zoomingOut());
 
     function zoomingIn() {
-      scale += 0.01;
-      if (scale > 60) {
-        scale = 60;
+      scale += 0.05;
+      if (scale > 300) {
+        scale = 300;
       }
       virtualScale -= Math.round(scale);
-      // if (virtualScale < scale) {
-      //   virtualScale = scale;
-      //   return;
-      // }
       onInput();
     }
 
     function zoomingOut() {
-      scale -= 0.01;
-      if (scale < 40) {
-        scale = 40;
+      scale -= 0.05;
+      if (scale < SCALE - 10) {
+        scale = SCALE - 10;
       }
       virtualScale += Math.round(scale);
       onInput();
@@ -272,14 +291,15 @@ window.onload = () => {
       svg.appendChild(yAxis);
 
       // Draw tick markings:
-      let fontSize = 10,
+      let fontSize = (15 * scale) / SCALE,
         varValue = 1;
+
       for (let x = centerX % scale; x <= width; x += scale) {
         let PosReal = document.createElementNS(
           "http://www.w3.org/2000/svg",
           "text",
         );
-        PosReal.setAttribute("y", centerY - fontSize / 2);
+        PosReal.setAttribute("y", centerY - SCALE / 15);
         PosReal.setAttribute("font-size", fontSize);
         PosReal.setAttribute("fill", "black");
         PosReal.setAttribute("fontFamily", "Monaco");
@@ -344,15 +364,15 @@ window.onload = () => {
 
     function drawGrid(svg, centerX, centerY, scale) {
       // Vertical grid lines
-      for (let x = centerX % scale; x <= width; x += scale) {
-        const line = createLine(x, 0, x, height, "#a0c0e0", 0.5);
+      for (let x = (centerX % scale) - scale; x <= width; x += scale) {
+        const line = createLine(x, 0, x, height, "#a0c0e0", 0.6);
         const line2 = createLine(
           x + scale / 2,
           0,
           x + scale / 2,
           height,
           "#a0c0e0",
-          0.25,
+          0.3,
         );
         const line3 = createLine(
           x + scale / 4,
@@ -360,7 +380,7 @@ window.onload = () => {
           x + scale / 4,
           height,
           "#a0c0e0",
-          0.1,
+          0.15,
         );
         const line4 = createLine(
           x + (scale * 3) / 4,
@@ -368,7 +388,7 @@ window.onload = () => {
           x + (scale * 3) / 4,
           height,
           "#a0c0e0",
-          0.1,
+          0.15,
         );
         svg.appendChild(line);
         svg.appendChild(line2);
@@ -377,15 +397,15 @@ window.onload = () => {
       }
 
       // Horizontal grid lines
-      for (let y = centerY % scale; y <= height; y += scale) {
-        const line = createLine(0, y, width, y, "#a0c0e0", 0.5);
+      for (let y = (centerY % scale) - scale; y <= height; y += scale) {
+        const line = createLine(0, y, width, y, "#a0c0e0", 0.6);
         const line2 = createLine(
           0,
           y + scale / 2,
           width,
           y + scale / 2,
           "#a0c0e0",
-          0.25,
+          0.3,
         );
         const line3 = createLine(
           0,
@@ -393,7 +413,7 @@ window.onload = () => {
           width,
           y + scale / 4,
           "#a0c0e0",
-          0.1,
+          0.15,
         );
         const line4 = createLine(
           0,
@@ -401,7 +421,7 @@ window.onload = () => {
           width,
           y + (scale * 3) / 4,
           "#a0c0e0",
-          0.1,
+          0.15,
         );
         svg.appendChild(line);
         svg.appendChild(line2);
@@ -430,7 +450,7 @@ window.onload = () => {
       PosReal.textContent = "+Re";
       PosReal.setAttribute(
         "x",
-        width - PosReal.textContent.length * fontSize + scale / 2,
+        width - PosReal.textContent.length * fontSize * 0.7,
       );
       svg.appendChild(PosReal);
 
@@ -844,4 +864,4 @@ window.onload = () => {
     // Initial setup
     drawAxesAndGridAndTickMarkings(svg, centerX, centerY, scale);
   }
-};
+}
