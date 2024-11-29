@@ -68,10 +68,10 @@ function main() {
     const zoomOut = diagram.querySelector("div#zoomOut");
     diagram.querySelector("div#zoomReset").addEventListener("click", () => {
       let temp = diagram.getBoundingClientRect();
-      centerX = Math.floor((temp.width * 0.97) / 2);
-      centerY = Math.floor((temp.height * 0.97) / 2);
       scale = SCALE;
       virtualScale = SCALE;
+      centerX = Math.floor((temp.width * 0.97) / 2);
+      centerY = Math.floor((temp.height * 0.97) / 2);
       onInput();
     });
     // Set SVG dimensions
@@ -86,32 +86,18 @@ function main() {
     let centerX = Math.floor(width / 2); // Center of SVG for x-axis
     let centerY = Math.floor(height / 2); // Center of SVG for y-axis
 
-    let isDragging = false;
-    let startX = 0;
-    let startY = 0;
-
-    diagram.addEventListener("mousedown", (event) => {
-      diagram.style.cursor = "grabbing";
-      const startX = event.clientX;
-      const startY = event.clientY;
-
+    const startDragging = (startX, startY) => {
       const moveHandler = (moveEvent) => {
-        const dx = moveEvent.clientX - startX;
-        const dy = moveEvent.clientY - startY;
+        const clientX = moveEvent.clientX || moveEvent.touches[0].clientX;
+        const clientY = moveEvent.clientY || moveEvent.touches[0].clientY;
+        const dx = clientX - startX;
+        const dy = clientY - startY;
         centerX += dx / 18;
         centerY += dy / 18;
 
-        if (centerX > width - 100) {
-          centerX = width - 100;
-        } else if (centerX < 100) {
-          centerX = 100;
-        }
-
-        if (centerY > height - 100) {
-          centerY = height - 100;
-        } else if (centerY < 100) {
-          centerY = 100;
-        }
+        // Constrain centerX and centerY within bounds
+        centerX = Math.max(100, Math.min(centerX, width - 100));
+        centerY = Math.max(100, Math.min(centerY, height - 100));
 
         onInput();
       };
@@ -119,15 +105,26 @@ function main() {
       const upHandler = () => {
         document.removeEventListener("mousemove", moveHandler);
         document.removeEventListener("mouseup", upHandler);
+        document.removeEventListener("touchmove", moveHandler);
+        document.removeEventListener("touchend", upHandler);
+        diagram.style.cursor = "default";
       };
 
       document.addEventListener("mousemove", moveHandler);
       document.addEventListener("mouseup", upHandler);
+      document.addEventListener("touchmove", moveHandler);
+      document.addEventListener("touchend", upHandler);
+    };
+
+    diagram.addEventListener("mousedown", (event) => {
+      diagram.style.cursor = "grabbing";
+      startDragging(event.clientX, event.clientY);
     });
 
-    diagram.addEventListener("mouseup", () => {
-      isDragging = false;
-      diagram.style.cursor = "default";
+    diagram.addEventListener("touchstart", (event) => {
+      event.preventDefault(); // Prevent default touch behavior
+      diagram.style.cursor = "grabbing";
+      startDragging(event.touches[0].clientX, event.touches[0].clientY);
     });
 
     let scale = SCALE; // 1 unit = 60 pixels (constant but changing for zoom effects)
@@ -174,20 +171,27 @@ function main() {
       lastTouchDistance = 0;
     });
 
-    zoomIn.addEventListener("click", () => zoomingIn());
-    zoomOut.addEventListener("click", () => zoomingOut());
+    zoomIn.addEventListener("click", () => zoomingIn((count = 100)));
+    zoomOut.addEventListener("click", () => zoomingOut((count = 2)));
 
-    function zoomingIn() {
-      scale += 0.05;
-      if (scale > 300) {
-        scale = 300;
+    function zoomingIn(count = 1) {
+      for (let i = 0; i < count; i++) {
+        scale += 0.05;
+        if (scale > 300) {
+          scale = 300;
+        }
+        virtualScale -= Math.round(scale);
+        virtualScale = Math.max(virtualScale, scale);
       }
-      virtualScale -= Math.round(scale);
       onInput();
     }
 
     function zoomingOut() {
-      scale -= 0.05;
+      if (scale > 100) {
+        scale -= 0.1;
+      } else {
+        scale -= 0.05;
+      }
       if (scale < SCALE - 10) {
         scale = SCALE - 10;
       }
