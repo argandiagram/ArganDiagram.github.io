@@ -13,7 +13,24 @@ Organization:
   └──────────────────────────────
 ```
 
-## Syntax and Use Example
+## Adding to your file:
+2 Steps:
+- Add the following code to your html file
+```html
+<link rel="stylesheet" type="text/css" href="https://argandiagram.github.io/src/styles.css"/>
+<script src="https://argandiagram.github.io/src/index.js"></script>
+```
+
+- Create a div as follow in the body:
+```html
+<div class="ArgandDiagram no-select"></div>
+```
+
+> Note that the div can be copied and pasted multiple times to create new diagram.
+
+> You can change the size of the diagram with css by simply changing the width and height as per requirements.
+
+## Use Example
 **Circles:**
 - | Z | = 3: Circle at (0, 0), radius 3
 - | Z - i + 2 | = 4: Circle at (-2, 1), radius 4
