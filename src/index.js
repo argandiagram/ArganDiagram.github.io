@@ -12,7 +12,6 @@ function main() {
     const hideInputs = document.createElement("div");
     hideInputs.id = "hideInputs";
     hideInputs.textContent = "|||";
-
     const allInputs = document.createElement("div");
     allInputs.id = "AllInputs";
 
@@ -134,9 +133,9 @@ function main() {
     diagram.addEventListener("wheel", (event) => {
       event.preventDefault();
       if (event.deltaY < 0) {
-        zoomingIn((count = 1));
+        zoomingIn(0.01);
       } else {
-        zoomingOut((count = 1));
+        zoomingOut(0.01);
       }
     });
 
@@ -160,9 +159,9 @@ function main() {
         );
         if (lastTouchDistance) {
           if (currentDistance < lastTouchDistance) {
-            zoomingOut();
+            zoomingOut(0.01);
           } else if (currentDistance > lastTouchDistance) {
-            zoomingIn();
+            zoomingIn(0.01);
           }
         }
         lastTouchDistance = currentDistance;
@@ -173,23 +172,44 @@ function main() {
       lastTouchDistance = 0;
     });
 
-    zoomIn.addEventListener("click", () => zoomingIn((count = 100)));
+    zoomIn.addEventListener("click", () => zoomingIn((count = 50)));
     zoomOut.addEventListener("click", () => zoomingOut((count = 2)));
 
     function zoomingIn(count = 1) {
-      for (let i = 0; i < count; i++) {
-        scale += 0.05;
+      if (count > 1) {
+        for (let i = 0; i < count; i++) {
+          scale += 0.05;
+          if (scale > 300) {
+            scale = 300;
+          }
+        }
+        virtualScale -= Math.round(scale);
+        virtualScale = Math.max(virtualScale, scale);
+      } else {
+        scale += 0.05 * count;
         if (scale > 300) {
           scale = 300;
         }
+        virtualScale -= Math.round(scale);
+        virtualScale = Math.max(virtualScale, scale);
       }
-      virtualScale -= Math.round(scale);
-      virtualScale = Math.max(virtualScale, scale);
       onInput();
     }
 
     function zoomingOut(count = 1) {
-      for (let i = 0; i < count; i++) {
+      if (count > 1) {
+        for (let i = 0; i < count; i++) {
+          if (scale > 100) {
+            scale -= 0.1;
+          } else {
+            scale -= 0.05;
+          }
+          if (scale < SCALE - 10) {
+            scale = SCALE - 10;
+          }
+        }
+        virtualScale += Math.round(scale);
+      } else {
         if (scale > 100) {
           scale -= 0.1;
         } else {
@@ -198,8 +218,9 @@ function main() {
         if (scale < SCALE - 10) {
           scale = SCALE - 10;
         }
+        scale *= count * count;
+        virtualScale += Math.round(scale);
       }
-      virtualScale += Math.round(scale);
       onInput();
     }
 
@@ -771,15 +792,127 @@ function main() {
               svg.appendChild(rect);
             }
             svg.appendChild(circle);
+
+            // Mouse click on circle points:
+            let point = null;
+            let pointElement = null;
+            let lineElement = null;
+
+            function calculateAngle(centerX, centerY, x, y) {
+              // Angle between two points
+              const dx = x - centerX;
+              const dy = y - centerY;
+              return Math.atan2(dy, dx) * (180 / Math.PI);
+            }
+
+            function getDistance(x1, y1, x2, y2) {
+              return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+            }
+
+            const rect = svg.getBoundingClientRect();
+            function handleCircleClick(event) {
+              // Click position relative to svg element
+              const clickX = event.clientX - rect.left;
+              const clickY = event.clientY - rect.top;
+
+              // Distance from center of circle to click
+              const distance = getDistance(clickX, clickY, canvasX, canvasY);
+
+              if (Math.abs(distance - radius) < 10) {
+                // Remove existing points
+                if (pointElement) {
+                  svg.removeChild(pointElement);
+                  svg.removeChild(lineElement);
+                }
+
+                pointElement = document.createElementNS(
+                  "http://www.w3.org/2000/svg",
+                  "circle",
+                );
+                pointElement.setAttribute("cx", clickX);
+                pointElement.setAttribute("cy", clickY);
+                pointElement.setAttribute("r", "5");
+                pointElement.setAttribute("fill", "red");
+
+                // Line from center of circle to point
+                lineElement = document.createElementNS(
+                  "http://www.w3.org/2000/svg",
+                  "line",
+                );
+                lineElement.setAttribute("x1", canvasX);
+                lineElement.setAttribute("y1", canvasY);
+                lineElement.setAttribute("x2", clickX);
+                lineElement.setAttribute("y2", clickY);
+                lineElement.setAttribute("stroke", "red");
+                lineElement.setAttribute("stroke-width", "2");
+
+                svg.appendChild(pointElement);
+                svg.appendChild(lineElement);
+
+                point = { x: clickX, y: clickY }; // Storing point coordinates
+              }
+            }
+
+            function handleMouseMove(event) {
+              if (!point) return;
+
+              const clickX = event.clientX - rect.left;
+              const clickY = event.clientY - rect.top;
+
+              const rotation = calculateAngle(canvasX, canvasY, clickX, clickY);
+
+              let angle;
+              if (rotation > 0) {
+                angle = 360 - Math.abs(rotation);
+              } else {
+                angle = -1 * rotation;
+              }
+
+              // Rotate point
+              const radians = rotation * (Math.PI / 180);
+              const newX = canvasX + radius * Math.cos(radians);
+              const newY = canvasY + radius * Math.sin(radians);
+
+              pointElement.setAttribute("cx", newX);
+              pointElement.setAttribute("cy", newY);
+              lineElement.setAttribute("x2", newX);
+              lineElement.setAttribute("y2", newY);
+            }
+
+            function handleOtherClick(event) {
+              if (!point) return;
+
+              const x = event.clientX - rect.left;
+              const y = event.clientY - rect.top;
+
+              const distance = getDistance(canvasX, canvasY, x, y);
+
+              // If click is far from circle, remove point
+              if (distance > radius + tolerance || distance < radius - tolerance) {
+                if (pointElement) {
+                  svg.removeChild(pointElement);
+                  svg.removeChild(lineElement);
+                }
+                point = null;
+                pointElement = null;
+                lineElement = null;
+              }
+            }
+
+            // Add event listeners
+            svg.addEventListener("click", handleCircleClick);
+            svg.addEventListener("mousemove", handleMouseMove);
+            svg.addEventListener("click", handleOtherClick);
           }
         } catch (error) {
           return;
         }
       }
-      circlesOnThePlot(svg, canvasX, canvasY, real, imaginary, other);
+      pointOnThePlot(svg, canvasX, canvasY, real, imaginary, other);
     }
 
-    function circlesOnThePlot(svg, X, Y, displayX, displayY, other = "") {
+    const tolerance = 5; // Tolerance distance
+    function pointOnThePlot(svg, X, Y, displayX, displayY, other = "") {
       if (other) if (!other.includes("CIRCLE")) return;
 
       // Draw the circle
@@ -830,7 +963,6 @@ function main() {
         const mouseY = event.clientY - rect.top; // Mouse Y relative to SVG
 
         // Check if mouse is near (centerX, centerY) within a tolerance
-        const tolerance = 5; // Tolerance distance
         if (
           Math.abs(mouseX - X) <= tolerance &&
           Math.abs(mouseY - Y) <= tolerance
