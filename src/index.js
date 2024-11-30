@@ -143,6 +143,7 @@ function main() {
     // For touch events (mobile zooming)
     diagram.addEventListener("touchstart", (event) => {
       if (event.touches.length === 2) {
+        event.preventDefault();
         lastTouchDistance = getTouchDistance(
           event.touches[0],
           event.touches[1],
@@ -152,6 +153,7 @@ function main() {
 
     diagram.addEventListener("touchmove", (event) => {
       if (event.touches.length === 2) {
+        event.preventDefault();
         const currentDistance = getTouchDistance(
           event.touches[0],
           event.touches[1],
