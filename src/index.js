@@ -59,21 +59,24 @@ function main() {
 
   const SCALE = 60;
   for (const diagram of argandDiagrams) {
-    const svg = diagram.querySelector("svg");
-    const equationInputs = diagram.querySelectorAll("input[type='text']");
 
     const toggleMenu = diagram.querySelector("div#hideInputs");
     const zoomIn = diagram.querySelector("div#zoomIn");
     const zoomOut = diagram.querySelector("div#zoomOut");
+    const zoomReset = diagram.querySelector("div#zoomReset");
+
     let temp = diagram.getBoundingClientRect();
+
+    const svg = diagram.querySelector("svg");
     svg.setAttribute("width", temp.width * 0.97);
     svg.setAttribute("height", temp.height * 0.97);
+
     const width = svg.getAttribute("width");
     const height = svg.getAttribute("height");
     let centerX = Math.floor(width / 2); // Center of SVG for x-axis
     let centerY = Math.floor(height / 2); // Center of SVG for y-axis
 
-    diagram.querySelector("div#zoomReset").addEventListener("click", () => {
+    zoomReset.addEventListener("click", () => {
       let temp = diagram.getBoundingClientRect();
       scale = SCALE;
       virtualScale = SCALE;
@@ -226,6 +229,7 @@ function main() {
     }
 
     // Attach event listener to all initial input fields
+    const equationInputs = diagram.querySelectorAll("input[type='text']");
     equationInputs.forEach((inputField) => {
       addInputEventListener(inputField);
     });
@@ -719,6 +723,7 @@ function main() {
               svg.appendChild(rect);
             }
             svg.appendChild(circle);
+            pointOnCircle(svg, canvasX, canvasY, radius);
           }
         } catch (error) {
           return;
@@ -727,128 +732,82 @@ function main() {
       pointOnThePlot(svg, canvasX, canvasY, real, imaginary, other);
     }
 
+    let activePointElement = null;
+    function pointOnCircle(svg, canvasX, canvasY, radius) {
+      // Remove any existing active point
+      if (activePointElement) {
+        activePointElement.remove();
+      }
+
+      // Create a point element
+      const point = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      point.setAttribute('r', '5');
+      point.setAttribute('fill', 'red');
+      svg.appendChild(point);
+
+      // Function to calculate angle between two points
+      function calculateAngle(centerX, centerY, pointX, pointY) {
+        const dx = pointX - centerX;
+        const dy = pointY - centerY;
+        return Math.atan2(dy, dx);
+      }
+
+      // Function to update point position based on angle
+      function updatePointPosition(angle) {
+        const newX = canvasX + radius * Math.cos(angle);
+        const newY = canvasY + radius * Math.sin(angle);
+        point.setAttribute('cx', newX);
+        point.setAttribute('cy', newY);
+      }
+
+      // Mouse move event to move point around the circle
+      function handleMouseMove(event) {
+        const rect = svg.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+
+        // Calculate angle based on cursor position
+        const angle = calculateAngle(canvasX, canvasY, x, y);
+
+        // Update the point's position on the circle
+        updatePointPosition(angle);
+      }
+
+      // Mouse down event to toggle point visibility
+      function handleMouseDown(event) {
+        const rect = svg.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+
+        // Calculate distance from center
+        const dx = x - canvasX;
+        const dy = y - canvasY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        // Toggle point visibility based on distance
+        if (Math.abs(distance - radius) > 10) {
+          point.style.display = "none";
+        } else {
+          point.style.display = point.style.display == "block" ? "none" : "block";
+        }
+      }
+
+      // Attach event listeners
+      svg.addEventListener('mousemove', handleMouseMove);
+      svg.addEventListener('mousedown', handleMouseDown);
+
+      // Initialize the point at a default angle (e.g., 0 radians)
+      updatePointPosition(0);
+      point.style.display = "none"
+
+      return point;
+    }
+
+
+
     function pointOnThePlot(svg, X, Y, displayX, displayY, other = "") {
       if (other) if (!other.includes("CIRCLE")) return;
       const tolerance = 5; // Tolerance distance
-
-      // // Mouse click on circle points:
-      // let point = null;
-      // let pointElement = null;
-      // let lineElement = null;
-
-      // function calculateAngle(centerX, centerY, x, y) {
-      //   // Angle between two points
-      //   const dx = x - centerX;
-      //   const dy = y - centerY;
-      //   return Math.atan2(dy, dx) * (180 / Math.PI);
-      // }
-
-      // function getDistance(x1, y1, x2, y2) {
-      //   return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
-      // }
-
-      // const rect = svg.getBoundingClientRect();
-      // function handleCircleClick(event) {
-      //   // Click position relative to svg element
-      //   const clickX = event.clientX - rect.left;
-      //   const clickY = event.clientY - rect.top;
-
-      //   // Distance from center of circle to click
-      //   const distance = getDistance(clickX, clickY, canvasX, canvasY);
-
-      //   if (Math.abs(distance - radius) < 10) {
-      //     // Remove existing points
-      //     if (pointElement) {
-      //       svg.removeChild(pointElement);
-      //       svg.removeChild(lineElement);
-      //     }
-
-      //     pointElement = document.createElementNS(
-      //       "http://www.w3.org/2000/svg",
-      //       "circle",
-      //     );
-      //     pointElement.setAttribute("cx", clickX);
-      //     pointElement.setAttribute("cy", clickY);
-      //     pointElement.setAttribute("r", "5");
-      //     pointElement.setAttribute("fill", "red");
-
-      //     // Line from center of circle to point
-      //     lineElement = document.createElementNS(
-      //       "http://www.w3.org/2000/svg",
-      //       "line",
-      //     );
-      //     lineElement.setAttribute("x1", canvasX);
-      //     lineElement.setAttribute("y1", canvasY);
-      //     lineElement.setAttribute("x2", clickX);
-      //     lineElement.setAttribute("y2", clickY);
-      //     lineElement.setAttribute("stroke", "red");
-      //     lineElement.setAttribute("stroke-width", "2");
-
-      //     svg.appendChild(pointElement);
-      //     svg.appendChild(lineElement);
-
-      //     point = { x: clickX, y: clickY }; // Storing point coordinates to remove on next click
-      //   }
-      // }
-
-      // function handleMouseMove(event) {
-      //   if (!point) return;
-
-      // //   const clickX = event.clientX - rect.left;
-      // //   const clickY = event.clientY - rect.top;
-
-      // //   const rotation = calculateAngle(
-      // //     canvasX,
-      // //     canvasY,
-      // //     clickX,
-      // //     clickY,
-      // //   );
-
-      // //   let angle;
-      // //   if (rotation > 0) {
-      // //     angle = 360 - Math.abs(rotation);
-      // //   } else {
-      // //     angle = -1 * rotation;
-      // //   }
-
-      // //   // Rotate point
-      // //   const radians = rotation * (Math.PI / 180);
-      // //   const newX = canvasX + radius * Math.cos(radians);
-      // //   const newY = canvasY + radius * Math.sin(radians);
-
-      // //   pointElement.setAttribute("cx", newX);
-      // //   pointElement.setAttribute("cy", newY);
-      // //   lineElement.setAttribute("x2", newX);
-      // //   lineElement.setAttribute("y2", newY);
-      // // }
-
-      // // function handleOtherClick(event) {
-      // //   if (!point) return;
-
-      // //   const x = event.clientX - rect.left;
-      // //   const y = event.clientY - rect.top;
-
-      // //   const distance = getDistance(canvasX, canvasY, x, y);
-
-      // //   // If click is far from circle, remove point
-      // //   if (
-      // //     distance > radius + tolerance ||
-      // //     distance < radius - tolerance
-      // //   ) {
-      // //     if (pointElement) {
-      // //       svg.removeChild(pointElement);
-      // //       svg.removeChild(lineElement);
-      // //     }
-      // //     point = null;
-      // //     pointElement = null;
-      // //     lineElement = null;
-      // //   }
-      // // }
-
-      // // // Add event listeners
-      // // svg.addEventListener("click", handleCircleClick);
-      // // svg.addEventListener("mousemove", handleMouseMove);
-      // // svg.addEventListener("click", handleOtherClick);
 
       // Draw the circle
       const circle = document.createElementNS(
@@ -904,7 +863,7 @@ function main() {
         ) {
           // Center the text above the mouse cursor
           text.setAttribute("x", mouseX - text.getBBox().width / 2); // Center horizontally
-          text.setAttribute("y", mouseY - 5); // 10px above mouse
+          text.setAttribute("y", mouseY - 5); // 5px above mouse
           return true;
         }
         return false;
