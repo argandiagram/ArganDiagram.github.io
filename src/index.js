@@ -89,11 +89,11 @@ function main() {
     const startDragging = (startX, startY) => {
       const moveHandler = (event) => {
         const clientX = event.clientX;
-        const clientY = event.clientY;
+        const clientY = eventcenterX.clientY;
         const dx = clientX - startX;
         const dy = clientY - startY;
-        centerX += dx / 18;
-        centerY += dy / 18;
+        centerX += dx / 16;
+        centerY += dy / 16;
 
         // Constrain centerX and centerY within bounds
         centerX = Math.max(100, Math.min(centerX, width - 75));
@@ -118,8 +118,6 @@ function main() {
 
     let scale = SCALE; // 1 unit = 60 pixels (constant but changing for zoom effects)
     let virtualScale = scale; // This is the scale that user sees on zoom controlling
-    let lastTouchDistance = 0;
-
     diagram.addEventListener("wheel", (event) => {
       event.preventDefault();
       if (event.deltaY < 0) {
@@ -741,9 +739,19 @@ function main() {
 
       // Create a point element
       const point = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+
       point.setAttribute('r', '5');
       point.setAttribute('fill', 'red');
+
+      text.setAttribute("font-size", "16");
+      text.setAttribute("stroke", "white");
+      text.setAttribute("stroke-width", "2");
+      text.setAttribute("paint-order", "stroke");
+      text.setAttribute("fill", "red");
+
       svg.appendChild(point);
+      svg.appendChild(text);
 
       // Function to calculate angle between two points
       function calculateAngle(centerX, centerY, pointX, pointY) {
@@ -756,8 +764,21 @@ function main() {
       function updatePointPosition(angle) {
         const newX = canvasX + radius * Math.cos(angle);
         const newY = canvasY + radius * Math.sin(angle);
+
         point.setAttribute('cx', newX);
         point.setAttribute('cy', newY);
+
+        let tempRealCenter = (canvasX - centerX) / scale;
+        let tempImagCenter = (centerY - canvasY) / scale;
+
+        let tempReal = tempRealCenter + radius * Math.cos(angle);
+        let tempImag = tempImagCenter + radius * Math.sin(angle);
+        tempReal = (tempReal / scale) + tempRealCenter;
+        tempImag = (tempImag / scale) - tempImagCenter;
+        text.textContent = `${tempReal.toFixed(1)}, ${-1 * tempImag.toFixed(1)}`;
+
+        text.setAttribute("x", newX - text.getBBox().width / 2); // Center horizontally
+        text.setAttribute("y", newY - 6);
       }
 
       // Mouse move event to move point around the circle
@@ -787,8 +808,10 @@ function main() {
         // Toggle point visibility based on distance
         if (Math.abs(distance - radius) > 10) {
           point.style.display = "none";
+          text.style.display = point.style.display;
         } else {
           point.style.display = point.style.display == "block" ? "none" : "block";
+          text.style.display = point.style.display;
         }
       }
 
@@ -796,10 +819,8 @@ function main() {
       svg.addEventListener('mousemove', handleMouseMove);
       svg.addEventListener('mousedown', handleMouseDown);
 
-      // Initialize the point at a default angle (e.g., 0 radians)
-      updatePointPosition(0);
-      point.style.display = "none"
-
+      point.style.display = "none";
+      text.style.display = point.style.display;
       return point;
     }
 
