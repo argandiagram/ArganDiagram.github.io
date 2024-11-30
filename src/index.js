@@ -89,7 +89,7 @@ function main() {
     const startDragging = (startX, startY) => {
       const moveHandler = (event) => {
         const clientX = event.clientX;
-        const clientY = eventcenterX.clientY;
+        const clientY = event.clientY;
         const dx = clientX - startX;
         const dy = clientY - startY;
         centerX += dx / 16;
