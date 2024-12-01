@@ -59,7 +59,6 @@ function main() {
 
   const SCALE = 60;
   for (const diagram of argandDiagrams) {
-
     const toggleMenu = diagram.querySelector("div#hideInputs");
     const zoomIn = diagram.querySelector("div#zoomIn");
     const zoomOut = diagram.querySelector("div#zoomOut");
@@ -68,23 +67,72 @@ function main() {
     let temp = diagram.getBoundingClientRect();
 
     const svg = diagram.querySelector("svg");
-    svg.setAttribute("width", temp.width * 0.97);
-    svg.setAttribute("height", temp.height * 0.97);
+    svg.setAttribute("width", temp.width);
+    svg.setAttribute("height", temp.height);
 
-    const width = svg.getAttribute("width");
-    const height = svg.getAttribute("height");
+    let width = svg.getAttribute("width");
+    let height = svg.getAttribute("height");
     let centerX = Math.floor(width / 2); // Center of SVG for x-axis
     let centerY = Math.floor(height / 2); // Center of SVG for y-axis
 
-    zoomReset.addEventListener("click", () => {
-      let temp = diagram.getBoundingClientRect();
-      scale = SCALE;
-      virtualScale = SCALE;
-      centerX = Math.floor((temp.width * 0.97) / 2);
-      centerY = Math.floor((temp.height * 0.97) / 2);
-      onInput();
+    let lastWidth = 0;
+    let lastHeight = 0;
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (let entry of entries) {
+        if (entry.target === diagram) {
+          let temp2 = diagram.getBoundingClientRect();
+
+          // Check if the current dimensions are different from the last recorded dimensions
+          if (temp.width !== temp2.width || temp.height !== temp2.height) {
+            // Update SVG attributes
+            svg.setAttribute("width", temp2.width);
+            svg.setAttribute("height", temp2.height);
+
+            // Update last known dimensions
+            temp.width = temp2.width;
+            temp.height = temp2.height;
+
+            // location.reload();
+            // TODO: Update page layout only
+            updateLayout();
+          }
+          break;
+        }
+      }
     });
 
+    function updateLayout() {
+      // Recalculate center coordinates
+      width = svg.getAttribute("width");
+      height = svg.getAttribute("height");
+      centerX = Math.floor(width / 2);
+      centerY = Math.floor(height / 2);
+
+      // Redraw everything with new dimensions
+      drawAxesAndGridAndTickMarkings(svg, centerX, centerY, scale);
+
+      // Replot all existing equations
+      const equationInputsTemp = diagram.querySelectorAll(
+        "div#AllInputs input[type='text']",
+      );
+
+      equationInputsTemp.forEach((inputFields) => {
+        const equation = inputFields.value.trim();
+        plotComplexNumber(equation, svg, centerX, centerY, scale);
+      });
+    }
+
+    // Observe only the specific diagram element
+    resizeObserver.observe(diagram);
+
+    zoomReset.addEventListener("click", () => {
+      scale = SCALE;
+      virtualScale = SCALE;
+      centerX = Math.floor(temp.width / 2);
+      centerY = Math.floor(temp.height / 2);
+      onInput();
+    });
 
     const startDragging = (startX, startY) => {
       const moveHandler = (event) => {
@@ -593,6 +641,7 @@ function main() {
 
               svg.appendChild(rect);
             }
+            pointOnLine(svg, canvasX, canvasY, real, imaginary);
           } else if (other.includes("IM")) {
             const sign = other.replace("IM", "");
 
@@ -642,6 +691,7 @@ function main() {
 
               svg.appendChild(rect);
             }
+            pointOnLine(svg, canvasX, canvasY, real, imaginary);
           } else if (other.includes("CIRCLE")) {
             let parts = other.split(",").map((part) => part.trim());
             let radius = (parseFloat(parts[1]) * scale * scale) / virtualScale;
@@ -730,6 +780,8 @@ function main() {
       pointOnThePlot(svg, canvasX, canvasY, real, imaginary, other);
     }
 
+    function pointOnLine(svg, canvasX, canvasY, displayX, displayY) {}
+
     let activePointElement = null;
     function pointOnCircle(svg, canvasX, canvasY, radius) {
       // Remove any existing active point
@@ -738,11 +790,17 @@ function main() {
       }
 
       // Create a point element
-      const point = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      const point = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "circle",
+      );
+      const text = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "text",
+      );
 
-      point.setAttribute('r', '5');
-      point.setAttribute('fill', 'red');
+      point.setAttribute("r", "5");
+      point.setAttribute("fill", "red");
 
       text.setAttribute("font-size", "16");
       text.setAttribute("stroke", "white");
@@ -765,16 +823,16 @@ function main() {
         const newX = canvasX + radius * Math.cos(angle);
         const newY = canvasY + radius * Math.sin(angle);
 
-        point.setAttribute('cx', newX);
-        point.setAttribute('cy', newY);
+        point.setAttribute("cx", newX);
+        point.setAttribute("cy", newY);
 
         let tempRealCenter = (canvasX - centerX) / scale;
         let tempImagCenter = (centerY - canvasY) / scale;
 
         let tempReal = tempRealCenter + radius * Math.cos(angle);
         let tempImag = tempImagCenter + radius * Math.sin(angle);
-        tempReal = (tempReal / scale) + tempRealCenter;
-        tempImag = (tempImag / scale) - tempImagCenter;
+        tempReal = tempReal / scale + tempRealCenter;
+        tempImag = tempImag / scale - tempImagCenter;
         text.textContent = `${tempReal.toFixed(1)}, ${-1 * tempImag.toFixed(1)}`;
 
         text.setAttribute("x", newX - text.getBBox().width / 2); // Center horizontally
@@ -810,21 +868,20 @@ function main() {
           point.style.display = "none";
           text.style.display = point.style.display;
         } else {
-          point.style.display = point.style.display == "block" ? "none" : "block";
+          point.style.display =
+            point.style.display == "block" ? "none" : "block";
           text.style.display = point.style.display;
         }
       }
 
       // Attach event listeners
-      svg.addEventListener('mousemove', handleMouseMove);
-      svg.addEventListener('mousedown', handleMouseDown);
+      svg.addEventListener("mousemove", handleMouseMove);
+      svg.addEventListener("mousedown", handleMouseDown);
 
       point.style.display = "none";
       text.style.display = point.style.display;
       return point;
     }
-
-
 
     function pointOnThePlot(svg, X, Y, displayX, displayY, other = "") {
       if (other) if (!other.includes("CIRCLE")) return;
