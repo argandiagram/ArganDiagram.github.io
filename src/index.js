@@ -75,9 +75,6 @@ function main() {
     let centerX = Math.floor(width / 2); // Center of SVG for x-axis
     let centerY = Math.floor(height / 2); // Center of SVG for y-axis
 
-    let lastWidth = 0;
-    let lastHeight = 0;
-
     const resizeObserver = new ResizeObserver((entries) => {
       for (let entry of entries) {
         if (entry.target === diagram) {
@@ -780,7 +777,7 @@ function main() {
       pointOnThePlot(svg, canvasX, canvasY, real, imaginary, other);
     }
 
-    function pointOnLine(svg, canvasX, canvasY, displayX, displayY) {}
+    function pointOnLine(svg, canvasX, canvasY, displayX, displayY) { }
 
     let activePointElement = null;
     function pointOnCircle(svg, canvasX, canvasY, radius) {
