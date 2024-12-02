@@ -90,8 +90,6 @@ function main() {
             temp.width = temp2.width;
             temp.height = temp2.height;
 
-            // location.reload();
-            // TODO: Update page layout only
             updateLayout();
           }
           break;
@@ -177,6 +175,7 @@ function main() {
 
     function zoomingIn(count = 1) {
       for (let i = 0; i < count; i++) {
+        // virtual scale lower
         scale += 0.05;
         if (scale > 300) {
           scale = 300;
@@ -311,7 +310,7 @@ function main() {
         PosReal.textContent = `${Math.round((varValue * virtualScale) / scale)}`;
         PosReal.setAttribute(
           "x",
-          centerX + scale * varValue - PosReal.textContent.length * 2,
+          centerX + scale * varValue - PosReal.textContent.length * 3,
         );
         svg.appendChild(PosReal);
 
@@ -320,7 +319,7 @@ function main() {
         NegReal.textContent = `-${Math.round((varValue * virtualScale) / scale)}`;
         NegReal.setAttribute(
           "x",
-          centerX - scale * varValue - NegReal.textContent.length * 2,
+          centerX - scale * varValue - NegReal.textContent.length * 3,
         );
         svg.appendChild(NegReal);
 
@@ -944,8 +943,7 @@ function main() {
           point.style.display = "none";
           text.style.display = point.style.display;
         } else {
-          point.style.display =
-            point.style.display == "block" ? "none" : "block";
+          point.style.display = point.style.display == "block" ? "none" : "block";
           text.style.display = point.style.display;
         }
       }
