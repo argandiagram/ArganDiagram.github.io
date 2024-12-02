@@ -672,13 +672,11 @@ function main() {
             rect.setAttribute("fill", "red"); // Fill color
             rect.setAttribute("fill-opacity", "0.3"); // 50% transparency for the fill
 
-            // Im(Z) >= 3
             if (sign.includes("<")) {
               rect.setAttribute("x", 0);
               rect.setAttribute("y", centerY - (centerY - canvasY));
               rect.setAttribute("width", width);
               rect.setAttribute("height", height);
-
               svg.appendChild(rect);
             } else if (sign.includes(">")) {
               rect.setAttribute("x", 0);
@@ -720,7 +718,7 @@ function main() {
                 "rect",
               );
               rect.setAttribute("fill", "black");
-              rect.setAttribute("fill-opacity", "0.4");
+              rect.setAttribute("fill-opacity", "0.3");
               rect.setAttribute("x", 0);
               rect.setAttribute("y", 0);
               rect.setAttribute("width", width);
@@ -752,7 +750,6 @@ function main() {
               maskCircle.setAttribute("cx", circle.getAttribute("cx"));
               maskCircle.setAttribute("cy", circle.getAttribute("cy"));
               maskCircle.setAttribute("r", circle.getAttribute("r"));
-              maskCircle.setAttribute("fill", "black");
 
               // Add elements to the mask
               mask.appendChild(maskRect);
@@ -762,10 +759,8 @@ function main() {
               rect.setAttribute("mask", "url(#transparentPointMask)");
 
               circle.setAttribute("fill", "none");
-
-              // Append mask and rectangle to SVG first
-              svg.appendChild(mask);
               svg.appendChild(rect);
+              svg.appendChild(mask);
             }
             svg.appendChild(circle);
             pointOnCircle(svg, canvasX, canvasY, radius);
@@ -777,15 +772,8 @@ function main() {
       pointOnThePlot(svg, canvasX, canvasY, real, imaginary, other);
     }
 
-    function pointOnLine(svg, canvasX, canvasY, displayX, displayY) { }
-
-    let activePointElement = null;
-    function pointOnCircle(svg, canvasX, canvasY, radius) {
-      // Remove any existing active point
-      if (activePointElement) {
-        activePointElement.remove();
-      }
-
+    const tolerance = 5; // Tolerance distance
+    function pointOnLine(svg, canvasX, canvasY, real, imaginary) {
       // Create a point element
       const point = document.createElementNS(
         "http://www.w3.org/2000/svg",
@@ -798,7 +786,98 @@ function main() {
 
       point.setAttribute("r", "5");
       point.setAttribute("fill", "red");
+      text.setAttribute("font-size", "16");
+      text.setAttribute("stroke", "white");
+      text.setAttribute("stroke-width", "2");
+      text.setAttribute("paint-order", "stroke");
+      text.setAttribute("fill", "red");
 
+      svg.appendChild(point);
+      svg.appendChild(text);
+
+      // Update point position for vertical or horizontal line
+      function updatePointPosition(mouseX, mouseY) {
+        let newX, newY, tempReal, tempImag;
+
+        if (real) {
+          // Vertical line (constant real part)
+          newX = canvasX;
+          newY = mouseY;
+
+          // Convert canvas coordinates to complex plane coordinates
+          tempRealCenter = (canvasX - centerX) / scale;
+          tempImagCenter = (centerY - canvasY) / scale;
+
+          tempReal = real; // Fixed real part
+          tempImag = -(tempImagCenter + (newY - centerY) / scale) * virtualScale / scale; // Negated to match complex plane orientation
+
+          text.textContent = `${tempReal.toFixed(1)}, ${tempImag.toFixed(1)}`;
+        } else if (imaginary) {
+          // Horizontal line (constant imaginary part)
+          newX = mouseX;
+          newY = canvasY;
+
+          // Convert canvas coordinates to complex plane coordinates
+          tempRealCenter = (canvasX - centerX) / scale;
+          tempImagCenter = (centerY - canvasY) / scale;
+
+          tempReal = (tempRealCenter + (newX - centerX) / scale) * virtualScale / scale; // Positive real part
+          tempImag = -imaginary; // Fixed imaginary part, negated to match complex plane orientation
+
+          text.textContent = `${tempReal.toFixed(1)}, ${tempImag.toFixed(1)}`;
+        }
+
+        point.setAttribute("cx", newX);
+        point.setAttribute("cy", newY);
+
+        text.setAttribute("x", newX - text.getBBox().width / 2);
+        text.setAttribute("y", newY - 6);
+      }
+
+      // Mouse move event to move point along the line
+      const rect = svg.getBoundingClientRect();
+      function handleMouseMove(event) {
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+
+        updatePointPosition(x, y);
+      }
+
+      // Mouse down event to toggle point visibility
+      function handleMouseDown(event) {
+        let distance = null;
+        if (real) {
+          distance = event.clientX - rect.left;
+        } else {
+          distance = event.clientY - rect.top;
+        }
+        point.style.display = point.style.display == "block" ? "none" : "block";
+        text.style.display = point.style.display;
+      }
+
+      // Attach event listeners
+      svg.addEventListener("mousemove", handleMouseMove);
+      svg.addEventListener("mousedown", handleMouseDown);
+
+      point.style.display = "none";
+      text.style.display = point.style.display;
+
+      return point;
+    }
+
+    function pointOnCircle(svg, canvasX, canvasY, radius) {
+      // Create a point element
+      const point = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "circle",
+      );
+      const text = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "text",
+      );
+
+      point.setAttribute("r", "5");
+      point.setAttribute("fill", "red");
       text.setAttribute("font-size", "16");
       text.setAttribute("stroke", "white");
       text.setAttribute("stroke-width", "2");
@@ -861,7 +940,7 @@ function main() {
         const distance = Math.sqrt(dx * dx + dy * dy);
 
         // Toggle point visibility based on distance
-        if (Math.abs(distance - radius) > 10) {
+        if (Math.abs(distance - radius) > tolerance) {
           point.style.display = "none";
           text.style.display = point.style.display;
         } else {
@@ -882,7 +961,6 @@ function main() {
 
     function pointOnThePlot(svg, X, Y, displayX, displayY, other = "") {
       if (other) if (!other.includes("CIRCLE")) return;
-      const tolerance = 5; // Tolerance distance
 
       // Draw the circle
       const circle = document.createElementNS(
