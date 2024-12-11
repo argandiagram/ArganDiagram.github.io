@@ -808,7 +808,9 @@ function main() {
           tempImagCenter = (centerY - canvasY) / scale;
 
           tempReal = real; // Fixed real part
-          tempImag = -(tempImagCenter + (newY - centerY) / scale) * virtualScale / scale; // Negated to match complex plane orientation
+          tempImag =
+            (-(tempImagCenter + (newY - centerY) / scale) * virtualScale) /
+            scale; // Negated to match complex plane orientation
 
           text.textContent = `${tempReal.toFixed(1)}, ${tempImag.toFixed(1)}`;
         } else if (imaginary) {
@@ -820,7 +822,9 @@ function main() {
           tempRealCenter = (canvasX - centerX) / scale;
           tempImagCenter = (centerY - canvasY) / scale;
 
-          tempReal = (tempRealCenter + (newX - centerX) / scale) * virtualScale / scale; // Positive real part
+          tempReal =
+            ((tempRealCenter + (newX - centerX) / scale) * virtualScale) /
+            scale; // Positive real part
           tempImag = -imaginary; // Fixed imaginary part, negated to match complex plane orientation
 
           text.textContent = `${tempReal.toFixed(1)}, ${tempImag.toFixed(1)}`;
@@ -943,7 +947,8 @@ function main() {
           point.style.display = "none";
           text.style.display = point.style.display;
         } else {
-          point.style.display = point.style.display == "block" ? "none" : "block";
+          point.style.display =
+            point.style.display == "block" ? "none" : "block";
           text.style.display = point.style.display;
         }
       }
